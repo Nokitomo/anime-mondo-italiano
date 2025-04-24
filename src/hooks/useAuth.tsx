@@ -12,6 +12,7 @@ type AuthContextType = {
   user: User | null;
   loading: boolean;
   error: string | null;
+  setUser: (user: User) => void;
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string, username: string) => Promise<boolean>;
   logout: () => Promise<boolean>;
@@ -55,6 +56,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setError(null);
         } else if (event === "SIGNED_OUT") {
           setUser(null);
+        } else if (event === "USER_UPDATED" && session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email,
+          });
         }
       }
     );
@@ -174,6 +180,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         user,
         loading,
         error,
+        setUser,
         login,
         register,
         logout,

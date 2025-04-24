@@ -1,1 +1,17 @@
+
+# This file is used to configure your Supabase project.
+# It's very minimal at the moment and uses default values.
+# You can learn more here: https://supabase.com/docs/guides/getting-started/local-development
+
+[general]
 project_id = "buzymhfvxyescbrqguga"
+
+[api]
+port = 54321
+schemas = ["public", "storage"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[[storage.buckets]]
+name = "avatars"
+public = true

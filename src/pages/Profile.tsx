@@ -22,7 +22,7 @@ const Profile = () => {
       if (!user?.id) return null;
       const { data } = await supabase
         .from("profiles")
-        .select("username")
+        .select("username, avatar_url")
         .eq("id", user.id)
         .single();
       return data;
@@ -45,7 +45,7 @@ const Profile = () => {
   
   return (
     <div className="container py-8">
-      <UserAvatar email={user.email} username={profile?.username} />
+      <UserAvatar email={user.email} username={profile?.username} avatarUrl={profile?.avatar_url} />
       <ProfileStats animeList={animeList} />
     </div>
   );
