@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { AnimeCard, AnimeCardSkeleton } from "@/components/AnimeCard";
 import { useQuery } from "@tanstack/react-query";
@@ -10,10 +9,10 @@ const Explore = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   
-  const { data, isLoading, error, isFetching, fetchNextPage } = useQuery({
+  const { data, isLoading, error, isFetching } = useQuery({
     queryKey: ["trendingAnime", page],
-    queryFn: () => getTrendingAnime(page, 24), // Carica 24 anime per pagina
-    keepPreviousData: true
+    queryFn: () => getTrendingAnime(),
+    staleTime: 5 * 60 * 1000, // 5 minuti
   });
 
   const loadMore = () => {
