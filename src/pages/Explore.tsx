@@ -15,7 +15,7 @@ const Explore = () => {
   const { data, isLoading, error, isFetching } = useQuery({
     queryKey: ["trendingAnime", page],
     queryFn: () => getTrendingAnime(),
-    staleTime: 5 * 60 * 1000, // 5 minuti
+    staleTime: 5 * 60 * 1000,
     retry: 2,
     onError: (err: any) => {
       console.error("Errore nel caricamento degli anime:", err);
