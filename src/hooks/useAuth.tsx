@@ -7,6 +7,7 @@ type User = {
   id: string;
   email?: string;
   username?: string;
+  avatar_url?: string;
 };
 
 type AuthContextType = {
@@ -41,26 +42,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             try {
               const { data: profileData, error: profileError } = await supabase
                 .from('profiles')
-                .select('username')
+                .select('username, avatar_url')
                 .eq('id', session.user.id)
                 .single();
 
-              if (profileError) {
+              if (profileError && profileError.code !== 'PGRST116') {
                 console.error("Errore nel recupero del profilo:", profileError);
               }
 
               setUserState({
                 id: session.user.id,
                 email: session.user.email,
-                username: profileData?.username || undefined
+                username: profileData?.username || undefined,
+                avatar_url: profileData?.avatar_url || undefined
               });
               setError(null);
             } catch (error) {
               console.error("Errore nel recupero del profilo:", error);
+            } finally {
+              setLoading(false);
             }
           }, 0);
         } else if (event === "SIGNED_OUT") {
           setUserState(null);
+          setLoading(false);
         }
       }
     );
@@ -77,7 +82,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (data.session?.user) {
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
-            .select('username')
+            .select('username, avatar_url')
             .eq('id', data.session.user.id)
             .single();
 
@@ -88,7 +93,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUserState({
             id: data.session.user.id,
             email: data.session.user.email,
-            username: profileData?.username || undefined
+            username: profileData?.username || undefined,
+            avatar_url: profileData?.avatar_url || undefined
           });
         }
       } catch (error) {

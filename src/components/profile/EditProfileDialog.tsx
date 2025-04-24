@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,26 +28,44 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [fileToUpload, setFileToUpload] = useState<File | null>(null);
 
-  const { data: profile } = useQuery({
+  // Utilizziamo useQuery per ottenere il profilo utente
+  const { data: profile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      const { data } = await supabase
-        .from("profiles")
-        .select("username, avatar_url")
-        .eq("id", user.id)
-        .single();
-      return data;
+      
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("username, avatar_url")
+          .eq("id", user.id)
+          .single();
+          
+        if (error) {
+          console.error("Errore nel caricamento del profilo:", error);
+          return null;
+        }
+        
+        return data;
+      } catch (error) {
+        console.error("Errore nella query del profilo:", error);
+        return null;
+      }
     },
     enabled: !!user && open,
   });
 
+  // Aggiorniamo lo stato locale quando il profilo viene caricato
   useEffect(() => {
     if (profile) {
-      setUsername(profile.username || "");
-      setAvatarUrl(profile.avatar_url);
+      if (profile.username) {
+        setUsername(profile.username);
+      }
+      if (profile.avatar_url) {
+        setAvatarUrl(profile.avatar_url);
+      }
     }
-  }, [profile]);
+  }, [profile, open]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -78,11 +97,27 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
     try {
       const fileExt = fileToUpload.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const filePath = fileName;
+      
+      // Verifichiamo che il bucket esista
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      
+      if (bucketsError) {
+        throw new Error(`Errore durante la verifica dei bucket: ${bucketsError.message}`);
+      }
+      
+      const avatarBucketExists = buckets.some(bucket => bucket.name === 'avatars');
+      
+      if (!avatarBucketExists) {
+        throw new Error("Il bucket 'avatars' non esiste. Contatta l'amministratore.");
+      }
       
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, fileToUpload);
+        .upload(filePath, fileToUpload, {
+          cacheControl: '3600',
+          upsert: true
+        });
         
       if (uploadError) throw uploadError;
       
@@ -92,6 +127,7 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
         
       return data.publicUrl;
     } catch (error: any) {
+      console.error("Errore durante il caricamento dell'immagine:", error);
       toast({
         title: "Errore",
         description: `Errore durante il caricamento dell'immagine: ${error.message}`,
@@ -125,16 +161,22 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
         }
       }
       
+      console.log("Aggiornamento profilo con:", { username, avatar_url: uploadedAvatarUrl });
+      
       // Aggiorna il profilo
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ 
           username,
-          avatar_url: uploadedAvatarUrl 
+          avatar_url: uploadedAvatarUrl,
+          updated_at: new Date().toISOString()
         })
         .eq("id", user.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Errore nell'aggiornamento del profilo:", profileError);
+        throw profileError;
+      }
 
       // Update user context with new username and avatar
       setUser({ 
@@ -167,6 +209,7 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
       
       onOpenChange(false);
     } catch (error: any) {
+      console.error("Errore durante l'aggiornamento:", error);
       toast({
         title: "Errore",
         description: error.message || "Si è verificato un errore durante l'aggiornamento",
@@ -183,92 +226,98 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
         <DialogHeader>
           <DialogTitle>Modifica profilo</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative group">
-              <Avatar className="h-24 w-24">
-                {avatarUrl ? (
-                  <AvatarImage src={avatarUrl} alt="Profile" className="object-cover" />
-                ) : (
-                  <AvatarFallback className="text-4xl">
-                    {username ? username[0].toUpperCase() : email ? email[0].toUpperCase() : "U"}
-                  </AvatarFallback>
-                )}
-              </Avatar>
-              <label 
-                htmlFor="avatar-upload" 
-                className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity"
-              >
-                <Upload className="h-6 w-6 text-white" />
-              </label>
-              <input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              {avatarUrl && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-                  onClick={removeAvatar}
+        {isLoadingProfile ? (
+          <div className="flex items-center justify-center p-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative group">
+                <Avatar className="h-24 w-24">
+                  {avatarUrl ? (
+                    <AvatarImage src={avatarUrl} alt="Profile" className="object-cover" />
+                  ) : (
+                    <AvatarFallback className="text-4xl">
+                      {username ? username[0].toUpperCase() : email ? email[0].toUpperCase() : "U"}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <label 
+                  htmlFor="avatar-upload" 
+                  className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity"
                 >
-                  <X className="h-3 w-3" />
-                </Button>
-              )}
+                  <Upload className="h-6 w-6 text-white" />
+                </label>
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                {avatarUrl && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                    onClick={removeAvatar}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+              <span className="text-sm text-muted-foreground">
+                Clicca sull'immagine per cambiarla
+              </span>
             </div>
-            <span className="text-sm text-muted-foreground">
-              Clicca sull'immagine per cambiarla
-            </span>
-          </div>
-          
-          <div>
-            <label htmlFor="username" className="text-sm font-medium">
-              Nome utente
-            </label>
-            <Input
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Il tuo nome utente"
-            />
-          </div>
-          <div>
-            <label htmlFor="email" className="text-sm font-medium">
-              Email
-            </label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="La tua email"
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="text-sm font-medium">
-              Nuova password
-            </label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Lascia vuoto per non modificare"
-            />
-          </div>
-          <div className="flex justify-end gap-4">
-            <Button variant="outline" onClick={() => onOpenChange(false)} type="button">
-              Annulla
-            </Button>
-            <Button type="submit" disabled={loading || uploadingAvatar}>
-              {loading || uploadingAvatar ? "Salvataggio..." : "Salva"}
-            </Button>
-          </div>
-        </form>
+            
+            <div>
+              <label htmlFor="username" className="text-sm font-medium">
+                Nome utente
+              </label>
+              <Input
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Il tuo nome utente"
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="text-sm font-medium">
+                Email
+              </label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="La tua email"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="text-sm font-medium">
+                Nuova password
+              </label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Lascia vuoto per non modificare"
+              />
+            </div>
+            <div className="flex justify-end gap-4">
+              <Button variant="outline" onClick={() => onOpenChange(false)} type="button">
+                Annulla
+              </Button>
+              <Button type="submit" disabled={loading || uploadingAvatar}>
+                {loading || uploadingAvatar ? "Salvataggio..." : "Salva"}
+              </Button>
+            </div>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
