@@ -1,5 +1,5 @@
 
-import { AnimeSearchResponse, TrendingAnimeResponse } from "@/types/anime";
+import { AnimeSearchResponse, TrendingAnimeResponse, AnimeDetailsResponse } from "@/types/anime";
 
 const ANILIST_API_URL = "https://graphql.anilist.co";
 
@@ -125,6 +125,138 @@ const trendingQuery = `
   }
 `;
 
+const detailsQuery = `
+  query ($id: Int) {
+    Media(id: $id) {
+      id
+      title {
+        romaji
+        english
+        native
+        userPreferred
+      }
+      coverImage {
+        large
+        medium
+      }
+      bannerImage
+      description
+      episodes
+      chapters
+      genres
+      averageScore
+      meanScore
+      format
+      status
+      season
+      seasonYear
+      startDate {
+        year
+        month
+        day
+      }
+      endDate {
+        year
+        month
+        day
+      }
+      studios {
+        nodes {
+          id
+          name
+        }
+      }
+      type
+      relations {
+        edges {
+          relationType
+          node {
+            id
+            title {
+              romaji
+              english
+              native
+              userPreferred
+            }
+            coverImage {
+              large
+              medium
+            }
+            format
+            type
+          }
+        }
+      }
+      recommendations(sort: RATING_DESC) {
+        nodes {
+          mediaRecommendation {
+            id
+            title {
+              romaji
+              english
+              native
+              userPreferred
+            }
+            coverImage {
+              large
+              medium
+            }
+            format
+            type
+          }
+        }
+      }
+      characters(sort: ROLE, perPage: 10) {
+        nodes {
+          id
+          name {
+            full
+            native
+          }
+          image {
+            medium
+            large
+          }
+          gender
+          age
+          description
+          isFavourite
+        }
+        edges {
+          role
+          voiceActors(language: JAPANESE) {
+            id
+            name {
+              full
+              native
+            }
+            image {
+              medium
+              large
+            }
+          }
+        }
+      }
+      staff {
+        edges {
+          role
+          node {
+            id
+            name {
+              full
+              native
+            }
+            image {
+              medium
+              large
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 export const searchAnime = async (
   search: string,
   page = 1,
@@ -174,6 +306,29 @@ export const getTrendingAnime = async (): Promise<TrendingAnimeResponse> => {
   
   if (data.errors) {
     console.error("Errore nel recupero degli anime di tendenza:", data.errors);
+    throw new Error(data.errors[0].message);
+  }
+  
+  return data;
+};
+
+export const getAnimeDetails = async (id: number): Promise<AnimeDetailsResponse> => {
+  const response = await fetch(ANILIST_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      query: detailsQuery,
+      variables: { id },
+    }),
+  });
+
+  const data = await response.json();
+  
+  if (data.errors) {
+    console.error("Errore nel recupero dei dettagli dell'anime:", data.errors);
     throw new Error(data.errors[0].message);
   }
   

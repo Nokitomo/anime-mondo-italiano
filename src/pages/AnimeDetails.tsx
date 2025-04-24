@@ -1,110 +1,46 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { AnimeMedia } from "@/types/anime";
 import { translateText } from "@/services/translation-service";
 import { AnimeBanner } from "@/components/AnimeBanner";
+import { AnimeCard } from "@/components/AnimeCard";
+import { CharacterCard, StaffCard } from "@/components/CharacterCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getAnimeDetails } from "@/services/anilist-api";
+import { AnimeMedia, relationLabels } from "@/types/anime";
+import { useQuery } from "@tanstack/react-query";
 
 const AnimeDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [anime, setAnime] = useState<AnimeMedia | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [translatedDescription, setTranslatedDescription] = useState<string>("");
   
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["animeDetails", id],
+    queryFn: () => getAnimeDetails(parseInt(id || "0")),
+    enabled: !!id,
+  });
+  
+  const anime = data?.data?.Media;
+  
   useEffect(() => {
-    const fetchAnimeDetails = async () => {
-      if (!id) return;
-      
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const query = `
-          query ($id: Int) {
-            Media(id: $id) {
-              id
-              title {
-                romaji
-                english
-                native
-                userPreferred
-              }
-              coverImage {
-                large
-                medium
-              }
-              bannerImage
-              description
-              episodes
-              chapters
-              genres
-              averageScore
-              meanScore
-              format
-              status
-              season
-              seasonYear
-              startDate {
-                year
-                month
-                day
-              }
-              endDate {
-                year
-                month
-                day
-              }
-              studios {
-                nodes {
-                  id
-                  name
-                }
-              }
-              type
-            }
-          }
-        `;
-        
-        const response = await fetch("https://graphql.anilist.co", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            query,
-            variables: { id: parseInt(id) },
-          }),
-        });
-        
-        const data = await response.json();
-        
-        if (data.errors) {
-          throw new Error(data.errors[0].message);
-        }
-        
-        setAnime(data.data.Media);
-        
-        // Tenta di tradurre la descrizione
-        if (data.data.Media.description) {
-          const translated = await translateText(data.data.Media.description);
+    const translateDescription = async () => {
+      if (anime?.description) {
+        try {
+          const translated = await translateText(anime.description);
           setTranslatedDescription(translated);
+        } catch (err) {
+          console.error("Errore nella traduzione della descrizione:", err);
+          setTranslatedDescription(anime.description);
         }
-        
-      } catch (err) {
-        console.error("Errore nel recupero dei dettagli dell'anime:", err);
-        setError("Si è verificato un errore nel caricamento dei dettagli. Riprova più tardi.");
-      } finally {
-        setLoading(false);
       }
     };
     
-    fetchAnimeDetails();
-  }, [id]);
+    if (anime) {
+      translateDescription();
+    }
+  }, [anime]);
   
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="container py-12">
         <div className="animate-pulse">
@@ -124,7 +60,7 @@ const AnimeDetailsPage = () => {
     return (
       <div className="container py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Errore</h1>
-        <p className="text-red-600 mb-6">{error || "Anime non trovato"}</p>
+        <p className="text-red-600 mb-6">{error ? (error as Error).message : "Anime non trovato"}</p>
         <a href="/" className="text-anime-primary hover:underline">
           Torna alla home
         </a>
@@ -136,13 +72,26 @@ const AnimeDetailsPage = () => {
   const cleanDescription = translatedDescription || anime.description || "";
   const description = cleanDescription.replace(/<br\s*\/?>/g, '\n').replace(/<[^>]*>/g, '');
   
+  // Organizzare le relazioni per tipo
+  const relations = anime.relations?.edges || [];
+  
+  // Raccomandazioni
+  const recommendations = anime.recommendations?.nodes.map(node => node.mediaRecommendation) || [];
+  
+  // Personaggi
+  const characters = anime.characters?.nodes || [];
+  const characterEdges = anime.characters?.edges || [];
+  
+  // Staff
+  const staff = anime.staff?.edges || [];
+  
   return (
     <div>
       <AnimeBanner anime={anime} />
       
       <div className="container py-8">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList>
+          <TabsList className="mb-6">
             <TabsTrigger value="overview">Panoramica</TabsTrigger>
             <TabsTrigger value="characters">Personaggi</TabsTrigger>
             <TabsTrigger value="staff">Staff</TabsTrigger>
@@ -196,19 +145,103 @@ const AnimeDetailsPage = () => {
                   )}
                 </dl>
               </section>
+              
+              {relations.length > 0 && (
+                <section>
+                  <h2 className="text-xl font-semibold mb-4">Anime Correlati</h2>
+                  <div className="space-y-6">
+                    {Object.entries(relationLabels).map(([relationType, label]) => {
+                      const filteredRelations = relations.filter(rel => rel.relationType === relationType);
+                      
+                      if (filteredRelations.length === 0) return null;
+                      
+                      return (
+                        <div key={relationType} className="space-y-3">
+                          <h3 className="text-lg font-medium">{label}</h3>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            {filteredRelations.map((rel) => (
+                              <AnimeCard
+                                key={rel.node.id}
+                                anime={rel.node as AnimeMedia}
+                                showBadge={false}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+              
+              {recommendations.length > 0 && (
+                <section>
+                  <h2 className="text-xl font-semibold mb-4">Anime Consigliati</h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {recommendations.slice(0, 6).map((rec) => (
+                      <AnimeCard
+                        key={rec.id}
+                        anime={rec as AnimeMedia}
+                        showBadge={false}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
             </div>
           </TabsContent>
           
           <TabsContent value="characters" className="mt-6">
-            <div className="text-center text-muted-foreground py-12">
-              I personaggi saranno disponibili presto.
-            </div>
+            {characters.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {characters.map((character, index) => {
+                  const edge = characterEdges[index];
+                  const voiceActor = edge?.voiceActors?.[0];
+                  
+                  return (
+                    <CharacterCard
+                      key={character.id}
+                      id={character.id}
+                      name={character.name.full}
+                      nativeName={character.name.native}
+                      image={character.image.medium}
+                      role={edge?.role || "Personaggio"}
+                      voiceActor={voiceActor ? {
+                        id: voiceActor.id,
+                        name: voiceActor.name.full,
+                        nativeName: voiceActor.name.native,
+                        image: voiceActor.image.medium,
+                      } : undefined}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground py-12">
+                Nessun personaggio disponibile per questo anime.
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="staff" className="mt-6">
-            <div className="text-center text-muted-foreground py-12">
-              Lo staff sarà disponibile presto.
-            </div>
+            {staff.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {staff.map((staffEdge) => (
+                  <StaffCard
+                    key={`${staffEdge.node.id}-${staffEdge.role}`}
+                    id={staffEdge.node.id}
+                    name={staffEdge.node.name.full}
+                    nativeName={staffEdge.node.name.native}
+                    image={staffEdge.node.image.medium}
+                    role={staffEdge.role}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground py-12">
+                Nessun membro dello staff disponibile per questo anime.
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

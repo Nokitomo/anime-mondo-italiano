@@ -8,6 +8,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { Navbar } from "./components/Navbar";
 import Home from "./pages/Home";
 import SearchPage from "./pages/Search";
+import Explore from "./pages/Explore";
+import AnimeList from "./pages/AnimeList";
 import AnimeDetailsPage from "./pages/AnimeDetails";
 import LoginPage from "./pages/Login";
 import RegisterPage from "./pages/Register";
@@ -27,6 +29,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/ricerca" element={<SearchPage />} />
+              <Route path="/esplora" element={<Explore />} />
+              <Route path="/liste" element={<AnimeList />} />
               <Route path="/anime/:id" element={<AnimeDetailsPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/registrazione" element={<RegisterPage />} />

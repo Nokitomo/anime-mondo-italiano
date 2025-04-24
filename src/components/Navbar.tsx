@@ -1,14 +1,17 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { Menu, LogIn, User, Search } from "lucide-react";
+import { Menu, LogIn, User, Search, LogOut } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/useAuth";
 
 export function Navbar() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const { user, logout } = useAuth();
   
   const navItems = [
     { name: "Home", path: "/" },
@@ -19,6 +22,12 @@ export function Navbar() {
   const isActive = (path: string) => {
     return location.pathname === path;
   };
+
+  const handleLogout = async () => {
+    await logout();
+  };
+
+  const userInitial = user?.email ? user.email[0].toUpperCase() : "U";
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
@@ -49,11 +58,25 @@ export function Navbar() {
             </Button>
           </Link>
           <ThemeToggle />
-          <Link to="/login">
-            <Button variant="ghost" size="icon" className="hidden sm:flex">
-              <LogIn className="h-5 w-5" />
-            </Button>
-          </Link>
+          
+          {user ? (
+            <div className="flex items-center gap-2">
+              <Link to="/profilo">
+                <Avatar className="h-8 w-8 border border-muted">
+                  <AvatarFallback>{userInitial}</AvatarFallback>
+                </Avatar>
+              </Link>
+              <Button variant="ghost" size="icon" className="hidden sm:flex" onClick={handleLogout}>
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
+          ) : (
+            <Link to="/login">
+              <Button variant="ghost" size="icon" className="hidden sm:flex">
+                <LogIn className="h-5 w-5" />
+              </Button>
+            </Link>
+          )}
           
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
@@ -91,14 +114,37 @@ export function Navbar() {
                   <Search className="h-4 w-4" />
                   <span>Ricerca</span>
                 </Link>
-                <Link
-                  to="/login"
-                  className="flex items-center gap-2 text-sm font-medium"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <LogIn className="h-4 w-4" />
-                  <span>Accedi</span>
-                </Link>
+                {user ? (
+                  <>
+                    <Link
+                      to="/profilo"
+                      className="flex items-center gap-2 text-sm font-medium"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <User className="h-4 w-4" />
+                      <span>Profilo</span>
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsOpen(false);
+                      }}
+                      className="flex items-center gap-2 text-sm font-medium"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="flex items-center gap-2 text-sm font-medium"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <LogIn className="h-4 w-4" />
+                    <span>Accedi</span>
+                  </Link>
+                )}
               </div>
             </SheetContent>
           </Sheet>
