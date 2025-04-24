@@ -5,6 +5,7 @@ import { getUserAnimeList } from "@/services/supabase-service";
 import { useQuery } from "@tanstack/react-query";
 import { UserAvatar } from "@/components/profile/UserAvatar";
 import { ProfileStats } from "@/components/profile/ProfileStats";
+import { supabase } from "@/integrations/supabase/client";
 
 const Profile = () => {
   const { user, loading } = useAuth();
@@ -12,6 +13,20 @@ const Profile = () => {
   const { data: animeList, isLoading: loadingList } = useQuery({
     queryKey: ["animeList", user?.id],
     queryFn: () => user ? getUserAnimeList(user.id) : Promise.resolve([]),
+    enabled: !!user,
+  });
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", user.id)
+        .single();
+      return data;
+    },
     enabled: !!user,
   });
   
@@ -30,7 +45,7 @@ const Profile = () => {
   
   return (
     <div className="container py-8">
-      <UserAvatar email={user.email} />
+      <UserAvatar email={user.email} username={profile?.username} />
       <ProfileStats animeList={animeList} />
     </div>
   );
