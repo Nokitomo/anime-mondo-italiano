@@ -1,5 +1,6 @@
+
 import { useState, useEffect, createContext, useContext } from "react";
-import { supabase, signIn, signUp, signOut } from "../services/supabase-service";
+import { supabase } from "../integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 type User = {
@@ -31,17 +32,60 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
+    // Imposta prima il listener per gli eventi di autenticazione
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === "SIGNED_IN" && session?.user) {
+          // Usa setTimeout per evitare problemi di deadlock con Supabase
+          setTimeout(async () => {
+            try {
+              const { data: profileData, error: profileError } = await supabase
+                .from('profiles')
+                .select('username')
+                .eq('id', session.user.id)
+                .single();
+
+              if (profileError) {
+                console.error("Errore nel recupero del profilo:", profileError);
+              }
+
+              setUserState({
+                id: session.user.id,
+                email: session.user.email,
+                username: profileData?.username || undefined
+              });
+              setError(null);
+            } catch (error) {
+              console.error("Errore nel recupero del profilo:", error);
+            }
+          }, 0);
+        } else if (event === "SIGNED_OUT") {
+          setUserState(null);
+        }
+      }
+    );
+
+    // Poi verifica se c'è già una sessione attiva
     const checkUser = async () => {
       try {
-        const { data } = await supabase.auth.getSession();
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          throw sessionError;
+        }
+
         if (data.session?.user) {
-          const { data: profileData } = await supabase
+          const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('username')
             .eq('id', data.session.user.id)
             .single();
 
-          setUser({
+          if (profileError && profileError.code !== 'PGRST116') {
+            console.error("Errore nel recupero del profilo:", profileError);
+          }
+
+          setUserState({
             id: data.session.user.id,
             email: data.session.user.email,
             username: profileData?.username || undefined
@@ -55,27 +99,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === "SIGNED_IN" && session?.user) {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('username')
-            .eq('id', session.user.id)
-            .single();
-
-          setUser({
-            id: session.user.id,
-            email: session.user.email,
-            username: profileData?.username || undefined
-          });
-          setError(null);
-        } else if (event === "SIGNED_OUT") {
-          setUser(null);
-        }
-      }
-    );
-
     checkUser();
     
     return () => {
@@ -86,15 +109,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const result = await signIn(email, password);
+      setError(null);
       
-      if (!result.success) {
-        setError(result.error || "Errore di autenticazione");
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error("Errore nel login:", error.message);
+        setError(error.message || "Credenziali non valide");
         toast({
           title: "Errore",
-          description: result.error || "Impossibile effettuare il login",
+          description: error.message || "Credenziali non valide",
           variant: "destructive",
         });
+        return false;
+      }
+      
+      if (!data.user || !data.session) {
+        setError("Errore nel recupero dei dati utente");
         return false;
       }
       
@@ -102,10 +136,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Login effettuato",
         description: "Benvenuto in AnimeIT!",
       });
-      setError(null);
+      
       return true;
     } catch (error: any) {
-      setError(error.message);
+      console.error("Eccezione durante il login:", error);
+      setError(error.message || "Si è verificato un errore durante il login");
       toast({
         title: "Errore",
         description: error.message || "Si è verificato un errore",
@@ -120,13 +155,66 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const register = async (email: string, password: string, username: string) => {
     try {
       setLoading(true);
-      const result = await signUp(email, password, username);
+      setError(null);
       
-      if (!result.success) {
-        setError(result.error || "Errore durante la registrazione");
+      // Verifica se esiste già un utente con questa email
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', username)
+        .limit(1);
+      
+      if (checkError) {
+        console.error("Errore nella verifica del nome utente:", checkError);
+      } else if (existingUsers && existingUsers.length > 0) {
+        setError("Nome utente già in uso.");
         toast({
           title: "Errore",
-          description: result.error || "Impossibile completare la registrazione",
+          description: "Nome utente già in uso. Scegli un altro nome utente.",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      // Registrazione dell'utente
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error("Errore nella registrazione:", error.message);
+        setError(error.message || "Errore durante la registrazione");
+        toast({
+          title: "Errore",
+          description: error.message || "Impossibile completare la registrazione",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      if (!data.user) {
+        setError("Errore nella creazione dell'utente");
+        return false;
+      }
+      
+      // Creazione del profilo utente
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([
+          { id: data.user.id, username, created_at: new Date().toISOString() }
+        ]);
+      
+      if (profileError) {
+        console.error("Errore nella creazione del profilo:", profileError.message);
+        setError(profileError.message || "Errore nella creazione del profilo");
+        
+        // Elimina l'utente se il profilo non è stato creato
+        await supabase.auth.admin.deleteUser(data.user.id);
+        
+        toast({
+          title: "Errore",
+          description: "Errore nella creazione del profilo",
           variant: "destructive",
         });
         return false;
@@ -136,10 +224,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Registrazione effettuata",
         description: "Ti abbiamo inviato un'email di conferma. Conferma il tuo account per accedere.",
       });
-      setError(null);
+      
       return true;
     } catch (error: any) {
-      setError(error.message);
+      console.error("Eccezione durante la registrazione:", error);
+      setError(error.message || "Si è verificato un errore durante la registrazione");
       toast({
         title: "Errore",
         description: error.message || "Si è verificato un errore",
@@ -154,17 +243,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     try {
       setLoading(true);
-      const result = await signOut();
+      setError(null);
       
-      if (!result.success) {
-        setError(result.error || "Errore durante il logout");
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error("Errore nel logout:", error.message);
+        setError(error.message || "Errore durante il logout");
         toast({
           title: "Errore",
-          description: result.error || "Impossibile effettuare il logout",
+          description: error.message || "Impossibile effettuare il logout",
           variant: "destructive",
         });
         return false;
       }
+      
+      setUserState(null);
       
       toast({
         title: "Logout effettuato",
@@ -172,7 +266,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       return true;
     } catch (error: any) {
-      setError(error.message);
+      console.error("Eccezione durante il logout:", error);
+      setError(error.message || "Si è verificato un errore durante il logout");
       toast({
         title: "Errore",
         description: error.message || "Si è verificato un errore",

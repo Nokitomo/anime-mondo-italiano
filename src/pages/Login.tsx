@@ -5,23 +5,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { login, loading, error } = useAuth();
   const navigate = useNavigate();
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
     if (!email || !password) {
+      toast.error("Inserisci email e password");
+      setIsLoading(false);
       return;
     }
     
-    const success = await login(email, password);
-    if (success) {
-      navigate('/');
+    try {
+      const success = await login(email, password);
+      if (success) {
+        toast.success("Login effettuato con successo");
+        navigate('/');
+      }
+    } catch (err) {
+      console.error("Errore durante il login:", err);
+      toast.error("Impossibile effettuare il login. Verifica le credenziali.");
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -77,9 +90,9 @@ const LoginPage = () => {
           <Button
             type="submit"
             className="w-full bg-anime-primary hover:bg-anime-primary/90"
-            disabled={loading}
+            disabled={isLoading || loading}
           >
-            {loading ? "Accesso in corso..." : "Accedi"}
+            {(isLoading || loading) ? "Accesso in corso..." : "Accedi"}
           </Button>
         </form>
         
