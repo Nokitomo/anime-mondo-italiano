@@ -2,21 +2,13 @@
 import { useEffect, useState } from "react";
 import { AnimeMedia } from "@/types/anime";
 import { checkAnimeInUserList, AnimeListItem, removeAnimeFromList } from "@/services/supabase-service";
-import { AnimeTitle } from "./anime/AnimeTitle";
-import { AnimeMetadata } from "./anime/AnimeMetadata";
-import { AnimeAddToList } from "./anime/AnimeAddToList";
-import { AnimeListControls } from "./anime/AnimeListControls";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Trash2 } from "lucide-react";
+import { AnimeAddToList } from "./anime/AnimeAddToList";
+import { AnimeListControls } from "./anime/AnimeListControls";
+import { AnimeRemoveDialog } from "./anime/banner/AnimeRemoveDialog";
+import { AnimeBannerActions } from "./anime/banner/AnimeBannerActions";
+import { AnimeBannerInfo } from "./anime/banner/AnimeBannerInfo";
 
 interface AnimeBannerProps {
   anime: AnimeMedia;
@@ -109,45 +101,18 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
           
           <div className="space-y-4 flex-1">
             <div className="flex justify-between items-start">
-              <AnimeTitle title={anime.title} />
+              <AnimeBannerInfo
+                anime={anime}
+                studios={studios}
+                startDate={startDate}
+                nextEpisodeFormatted={nextEpisodeFormatted}
+              />
               
               {inUserList && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-700/50">
-                    <MoreHorizontal className="h-5 w-5" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem 
-                      className="text-destructive focus:text-destructive"
-                      onClick={() => setShowRemoveDialog(true)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Rimuovi dalla lista
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <AnimeBannerActions
+                  onRemoveClick={() => setShowRemoveDialog(true)}
+                />
               )}
-            </div>
-            
-            <AnimeMetadata anime={anime} nextEpisodeFormatted={nextEpisodeFormatted} />
-            
-            <div className="text-sm">
-              <p className="mb-1"><span className="opacity-70">Studio:</span> {studios}</p>
-              <p><span className="opacity-70">Anno:</span> {startDate}</p>
-              <p><span className="opacity-70">Stato:</span> {
-                anime.status === "FINISHED" ? "Completato" :
-                anime.status === "RELEASING" ? "In corso" :
-                anime.status === "NOT_YET_RELEASED" ? "Non ancora rilasciato" :
-                anime.status === "CANCELLED" ? "Cancellato" : anime.status
-              }</p>
-            </div>
-            
-            <div className="flex flex-wrap gap-2">
-              {anime.genres?.map((genre, index) => (
-                <Badge key={index} variant="secondary" className="bg-anime-primary/90">
-                  {genre}
-                </Badge>
-              ))}
             </div>
             
             <div className="pt-2">
@@ -169,22 +134,11 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
         </div>
       </div>
 
-      <AlertDialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
-            <AlertDialogDescription>
-              Sei sicuro di voler rimuovere questo anime dalla tua lista? Questa azione non può essere annullata.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annulla</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRemoveAndRedirect} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Rimuovi
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <AnimeRemoveDialog
+        showRemoveDialog={showRemoveDialog}
+        setShowRemoveDialog={setShowRemoveDialog}
+        onConfirmRemove={handleRemoveAndRedirect}
+      />
     </div>
   );
 }
