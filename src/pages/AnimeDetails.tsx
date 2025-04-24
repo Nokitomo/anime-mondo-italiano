@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { translateText } from "@/services/translation-service";
 import { AnimeBanner } from "@/components/AnimeBanner";
@@ -11,6 +11,8 @@ import { AnimeMedia, relationLabels } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { checkAnimeInUserList } from "@/services/supabase-service";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 const AnimeDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -44,6 +46,8 @@ const AnimeDetailsPage = () => {
       checkAnimeInUserList(anime.id).then(listItem => {
         if (listItem?.notes) {
           setUserNotes(listItem.notes);
+        } else {
+          setUserNotes("");
         }
       });
     }
@@ -97,19 +101,32 @@ const AnimeDetailsPage = () => {
   // Controlla se ci sono relazioni
   const hasRelations = relations.length > 0;
   
+  // Relazioni formattate per visualizzazione orizzontale
+  const formattedRelations = relations.map(rel => ({
+    id: rel.node.id,
+    title: rel.node.title,
+    coverImage: rel.node.coverImage,
+    type: rel.relationType,
+    node: rel.node,
+    label: relationLabels[rel.relationType] || rel.relationType
+  }));
+  
   return (
     <div>
       <AnimeBanner anime={anime} />
       
       <div className="container py-8">
-        {userNotes && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Note personali</h2>
-            <div className="prose prose-lg dark:prose-invert max-w-none">
+        {/* Note personali mostrate sopra i tab */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Note personali</h2>
+          <div className="prose prose-lg dark:prose-invert max-w-none bg-muted/20 p-4 rounded-md">
+            {userNotes ? (
               <p className="whitespace-pre-line">{userNotes}</p>
-            </div>
+            ) : (
+              <p className="text-muted-foreground italic">Nessuna nota personale. Puoi aggiungerne una nelle opzioni qui sopra.</p>
+            )}
           </div>
-        )}
+        </div>
         
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="mb-6">
@@ -170,30 +187,22 @@ const AnimeDetailsPage = () => {
               {hasRelations && (
                 <section>
                   <h2 className="text-xl font-semibold mb-4">Anime Correlati</h2>
-                  <div className="space-y-6">
-                    {Object.entries(relationLabels).map(([relationType, label]) => {
-                      const filteredRelations = relations.filter(rel => rel.relationType === relationType);
-                      
-                      if (filteredRelations.length === 0) return null;
-                      
-                      return (
-                        <div key={relationType} className="space-y-3">
-                          <h3 className="text-lg font-medium">{label}</h3>
-                          <ScrollArea className="w-full whitespace-nowrap">
-                            <div className="flex gap-4 pb-4">
-                              {filteredRelations.map((rel) => (
-                                <div key={rel.node.id} className="w-[180px] shrink-0">
-                                  <AnimeCard
-                                    anime={rel.node as AnimeMedia}
-                                    showBadge={false}
-                                  />
-                                </div>
-                              ))}
+                  <div className="relative">
+                    <ScrollArea className="w-full pb-4" orientation="horizontal">
+                      <div className="flex gap-4 py-2">
+                        {formattedRelations.map((relation) => (
+                          <div key={`${relation.id}-${relation.type}`} className="w-[180px] shrink-0">
+                            <div className="mb-1 px-2 py-0.5 text-xs font-medium inline-flex bg-primary/10 text-primary rounded">
+                              {relation.label}
                             </div>
-                          </ScrollArea>
-                        </div>
-                      );
-                    })}
+                            <AnimeCard
+                              anime={relation.node as AnimeMedia}
+                              showBadge={false}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
                   </div>
                 </section>
               )}

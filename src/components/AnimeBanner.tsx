@@ -1,12 +1,22 @@
 
 import { useEffect, useState } from "react";
 import { AnimeMedia } from "@/types/anime";
-import { checkAnimeInUserList, AnimeListItem } from "@/services/supabase-service";
+import { checkAnimeInUserList, AnimeListItem, removeAnimeFromList } from "@/services/supabase-service";
 import { AnimeTitle } from "./anime/AnimeTitle";
 import { AnimeMetadata } from "./anime/AnimeMetadata";
 import { AnimeAddToList } from "./anime/AnimeAddToList";
 import { AnimeListControls } from "./anime/AnimeListControls";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { MoreHorizontal, Trash2 } from "lucide-react";
 
 interface AnimeBannerProps {
   anime: AnimeMedia;
@@ -14,6 +24,9 @@ interface AnimeBannerProps {
 
 export function AnimeBanner({ anime }: AnimeBannerProps) {
   const [inUserList, setInUserList] = useState<AnimeListItem | null>(null);
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
   
   const studios = anime.studios?.nodes?.map(studio => studio.name).join(", ") || "Studio non disponibile";
   const startDate = anime.startDate?.year 
@@ -43,6 +56,34 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
     checkList();
   }, [anime.id]);
   
+  const handleRemoveAnime = async () => {
+    if (!inUserList) return;
+    
+    try {
+      await removeAnimeFromList(inUserList.id);
+      setInUserList(null);
+      
+      toast({
+        title: "Anime rimosso",
+        description: "L'anime è stato rimosso dalla tua lista.",
+      });
+      
+      setShowRemoveDialog(false);
+    } catch (error) {
+      console.error("Errore nella rimozione dell'anime:", error);
+      toast({
+        title: "Errore",
+        description: "Impossibile rimuovere l'anime dalla lista.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveAndRedirect = async () => {
+    await handleRemoveAnime();
+    navigate('/lista');
+  };
+  
   return (
     <div className="relative overflow-hidden bg-black text-white">
       {anime.bannerImage && (
@@ -67,7 +108,27 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
           </div>
           
           <div className="space-y-4 flex-1">
-            <AnimeTitle title={anime.title} />
+            <div className="flex justify-between items-start">
+              <AnimeTitle title={anime.title} />
+              
+              {inUserList && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-700/50">
+                    <MoreHorizontal className="h-5 w-5" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem 
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => setShowRemoveDialog(true)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Rimuovi dalla lista
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
+            
             <AnimeMetadata anime={anime} nextEpisodeFormatted={nextEpisodeFormatted} />
             
             <div className="text-sm">
@@ -107,6 +168,23 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
           </div>
         </div>
       </div>
+
+      <AlertDialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sei sicuro di voler rimuovere questo anime dalla tua lista? Questa azione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRemoveAndRedirect} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Rimuovi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

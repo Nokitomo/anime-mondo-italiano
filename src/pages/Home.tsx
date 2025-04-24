@@ -5,6 +5,7 @@ import { getTrendingAnime } from "@/services/anilist-api";
 import { AnimeCard, AnimeCardSkeleton } from "@/components/AnimeCard";
 import { Button } from "@/components/ui/button";
 import { AnimeMedia } from "@/types/anime";
+import { useAuth } from "@/hooks/useAuth";
 
 const Home = () => {
   const [trendingAnime, setTrendingAnime] = useState<AnimeMedia[]>([]);
@@ -12,6 +13,7 @@ const Home = () => {
   const [upcomingAnime, setUpcomingAnime] = useState<AnimeMedia[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
   
   useEffect(() => {
     const fetchAnime = async () => {
@@ -62,11 +64,13 @@ const Home = () => {
                   Esplora il catalogo
                 </Button>
               </Link>
-              <Link to="/registrazione">
-                <Button variant="outline">
-                  Crea un account
-                </Button>
-              </Link>
+              {!user && (
+                <Link to="/registrazione">
+                  <Button variant="outline">
+                    Crea un account
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>

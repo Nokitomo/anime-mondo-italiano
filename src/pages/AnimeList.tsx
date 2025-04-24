@@ -9,7 +9,33 @@ import { statusLabels, AnimeStatus } from "@/types/anime";
 import { useToast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { Check, Edit, Plus, Minus, Trash2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Check, Edit, Filter, Plus, Minus, Trash2 } from "lucide-react";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuRadioGroup, 
+  DropdownMenuRadioItem, 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
+
+type SortOption = {
+  field: keyof AnimeListItem | 'title' | 'format';
+  direction: 'asc' | 'desc';
+  label: string;
+};
+
+const sortOptions: SortOption[] = [
+  { field: 'title', direction: 'asc', label: 'Titolo (A-Z)' },
+  { field: 'title', direction: 'desc', label: 'Titolo (Z-A)' },
+  { field: 'score', direction: 'desc', label: 'Voto (alto-basso)' },
+  { field: 'score', direction: 'asc', label: 'Voto (basso-alto)' },
+  { field: 'progress', direction: 'desc', label: 'Progresso (alto-basso)' },
+  { field: 'progress', direction: 'asc', label: 'Progresso (basso-alto)' },
+  { field: 'updated_at', direction: 'desc', label: 'Data aggiornamento (recente-vecchio)' },
+  { field: 'updated_at', direction: 'asc', label: 'Data aggiornamento (vecchio-recente)' },
+];
 
 const AnimeList = () => {
   const { user } = useAuth();
@@ -19,6 +45,7 @@ const AnimeList = () => {
   const [activeTab, setActiveTab] = useState<AnimeStatus>("IN_CORSO");
   const { toast } = useToast();
   const [animeToDelete, setAnimeToDelete] = useState<AnimeListItem | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>(sortOptions[6]); // Default sort by last updated
 
   useEffect(() => {
     const fetchUserAnimeList = async () => {
@@ -58,7 +85,7 @@ const AnimeList = () => {
       // Aggiorna lo stato locale
       setAnimeList(prevList => 
         prevList.map(item => 
-          item.id === anime.id ? { ...item, progress: newProgress } : item
+          item.id === anime.id ? { ...item, progress: newProgress, updated_at: new Date().toISOString() } : item
         )
       );
       
@@ -101,6 +128,42 @@ const AnimeList = () => {
     }
   };
 
+  const sortedAndFilteredList = () => {
+    const filtered = animeList.filter(item => item.status === activeTab);
+    
+    return [...filtered].sort((a, b) => {
+      const fieldA = a[sortBy.field];
+      const fieldB = b[sortBy.field];
+      
+      if (typeof fieldA === 'string' && typeof fieldB === 'string') {
+        return sortBy.direction === 'asc' 
+          ? fieldA.localeCompare(fieldB) 
+          : fieldB.localeCompare(fieldA);
+      }
+      
+      if (typeof fieldA === 'number' && typeof fieldB === 'number') {
+        return sortBy.direction === 'asc' ? fieldA - fieldB : fieldB - fieldA;
+      }
+      
+      if (fieldA instanceof Date && fieldB instanceof Date) {
+        return sortBy.direction === 'asc' 
+          ? fieldA.getTime() - fieldB.getTime() 
+          : fieldB.getTime() - fieldA.getTime();
+      }
+      
+      // Handle dates stored as strings
+      if (sortBy.field === 'updated_at' || sortBy.field === 'created_at') {
+        const dateA = new Date(a[sortBy.field] as string);
+        const dateB = new Date(b[sortBy.field] as string);
+        return sortBy.direction === 'asc' 
+          ? dateA.getTime() - dateB.getTime() 
+          : dateB.getTime() - dateA.getTime();
+      }
+      
+      return 0;
+    });
+  };
+
   if (!user) {
     return (
       <div className="container py-8 text-center">
@@ -113,11 +176,47 @@ const AnimeList = () => {
     );
   }
 
-  const filteredList = animeList.filter(item => item.status === activeTab);
+  const filteredList = sortedAndFilteredList();
 
   return (
     <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-6">Le mie liste</h1>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <h1 className="text-3xl font-bold">Le mie liste</h1>
+        
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1">
+                <Filter className="h-4 w-4 mr-1" />
+                Ordina: {sortBy.label}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuRadioGroup value={`${sortBy.field}-${sortBy.direction}`} onValueChange={(value) => {
+                const [field, direction] = value.split('-') as [keyof AnimeListItem, 'asc' | 'desc'];
+                const option = sortOptions.find(o => o.field === field && o.direction === direction);
+                if (option) setSortBy(option);
+              }}>
+                {sortOptions.map((option, index) => (
+                  <DropdownMenuRadioItem 
+                    key={`${option.field}-${option.direction}`} 
+                    value={`${option.field}-${option.direction}`}
+                  >
+                    {option.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <Button asChild variant="default">
+            <Link to="/esplora">
+              <Plus className="h-4 w-4 mr-1" />
+              Aggiungi anime
+            </Link>
+          </Button>
+        </div>
+      </div>
       
       <Tabs
         defaultValue="IN_CORSO"
