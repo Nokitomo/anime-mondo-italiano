@@ -9,7 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      anime_list: {
+        Row: {
+          anime_id: number
+          cover_image: string | null
+          created_at: string
+          format: string | null
+          id: string
+          notes: string | null
+          progress: number | null
+          score: number | null
+          status: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          anime_id: number
+          cover_image?: string | null
+          created_at?: string
+          format?: string | null
+          id?: string
+          notes?: string | null
+          progress?: number | null
+          score?: number | null
+          status?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          anime_id?: number
+          cover_image?: string | null
+          created_at?: string
+          format?: string | null
+          id?: string
+          notes?: string | null
+          progress?: number | null
+          score?: number | null
+          status?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
