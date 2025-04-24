@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { translateText } from "@/services/translation-service";
@@ -42,7 +41,6 @@ const AnimeDetailsPage = () => {
     
     if (anime) {
       translateDescription();
-      // Controlla se l'anime è nella lista dell'utente per ottenere le note
       checkAnimeInUserList(anime.id).then(listItem => {
         if (listItem?.notes) {
           setUserNotes(listItem.notes);
@@ -81,27 +79,17 @@ const AnimeDetailsPage = () => {
     );
   }
   
-  // Ripulire la descrizione da tag HTML
   const cleanDescription = translatedDescription || anime.description || "";
   const description = cleanDescription.replace(/<br\s*\/?>/g, '\n').replace(/<[^>]*>/g, '');
   
-  // Organizzare le relazioni per tipo
   const relations = anime.relations?.edges || [];
-  
-  // Raccomandazioni
   const recommendations = anime.recommendations?.nodes.map(node => node.mediaRecommendation) || [];
-  
-  // Personaggi
   const characters = anime.characters?.nodes || [];
   const characterEdges = anime.characters?.edges || [];
-  
-  // Staff
   const staff = anime.staff?.edges || [];
   
-  // Controlla se ci sono relazioni
   const hasRelations = relations.length > 0;
   
-  // Relazioni formattate per visualizzazione orizzontale
   const formattedRelations = relations.map(rel => ({
     id: rel.node.id,
     title: rel.node.title,
@@ -116,7 +104,6 @@ const AnimeDetailsPage = () => {
       <AnimeBanner anime={anime} />
       
       <div className="container py-8">
-        {/* Note personali mostrate sopra i tab */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Note personali</h2>
           <div className="prose prose-lg dark:prose-invert max-w-none bg-muted/20 p-4 rounded-md">
@@ -188,8 +175,8 @@ const AnimeDetailsPage = () => {
                 <section>
                   <h2 className="text-xl font-semibold mb-4">Anime Correlati</h2>
                   <div className="relative">
-                    <ScrollArea className="w-full pb-4" orientation="horizontal">
-                      <div className="flex gap-4 py-2">
+                    <ScrollArea className="w-full whitespace-nowrap">
+                      <div className="flex gap-4 pb-4">
                         {formattedRelations.map((relation) => (
                           <div key={`${relation.id}-${relation.type}`} className="w-[180px] shrink-0">
                             <div className="mb-1 px-2 py-0.5 text-xs font-medium inline-flex bg-primary/10 text-primary rounded">
@@ -210,18 +197,20 @@ const AnimeDetailsPage = () => {
               {recommendations.length > 0 && (
                 <section>
                   <h2 className="text-xl font-semibold mb-4">Anime Consigliati</h2>
-                  <ScrollArea className="w-full whitespace-nowrap">
-                    <div className="flex gap-4 pb-4">
-                      {recommendations.map((rec) => (
-                        <div key={rec.id} className="w-[180px] shrink-0">
-                          <AnimeCard
-                            anime={rec as AnimeMedia}
-                            showBadge={false}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
+                  <div className="relative">
+                    <ScrollArea className="w-full whitespace-nowrap">
+                      <div className="flex gap-4 pb-4">
+                        {recommendations.map((rec) => (
+                          <div key={rec.id} className="w-[180px] shrink-0">
+                            <AnimeCard
+                              anime={rec as AnimeMedia}
+                              showBadge={false}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
                 </section>
               )}
             </div>
