@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getUserAnimeList, AnimeListItem, updateAnimeInList, removeAnimeFromList } from "@/services/supabase-service";
@@ -82,7 +81,6 @@ const AnimeList = () => {
         updated_at: new Date().toISOString(),
       });
       
-      // Aggiorna lo stato locale
       setAnimeList(prevList => 
         prevList.map(item => 
           item.id === anime.id ? { ...item, progress: newProgress, updated_at: new Date().toISOString() } : item
@@ -109,7 +107,6 @@ const AnimeList = () => {
     try {
       await removeAnimeFromList(animeToDelete.id);
       
-      // Aggiorna lo stato locale
       setAnimeList(prevList => prevList.filter(item => item.id !== animeToDelete.id));
       
       toast({
@@ -151,10 +148,9 @@ const AnimeList = () => {
           : fieldB.getTime() - fieldA.getTime();
       }
       
-      // Handle dates stored as strings
       if (sortBy.field === 'updated_at' || sortBy.field === 'created_at') {
-        const dateA = new Date(a[sortBy.field] as string);
-        const dateB = new Date(b[sortBy.field] as string);
+        const dateA = new Date(String(fieldA));
+        const dateB = new Date(String(fieldB));
         return sortBy.direction === 'asc' 
           ? dateA.getTime() - dateB.getTime() 
           : dateB.getTime() - dateA.getTime();
