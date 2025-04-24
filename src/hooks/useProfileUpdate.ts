@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { ProfileService } from "@/services/profile-service";
 import { useAuth } from "@/hooks/useAuth";
 
 export const useProfileUpdate = () => {
@@ -10,33 +10,6 @@ export const useProfileUpdate = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
-
-  const uploadAvatar = async (file: File) => {
-    if (!user) return null;
-    
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-        
-      if (uploadError) throw uploadError;
-      
-      const { data } = await supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-        
-      return data.publicUrl;
-    } catch (error: any) {
-      console.error("Avatar upload error:", error);
-      throw error;
-    }
-  };
 
   const updateProfile = async (username: string, file: File | null) => {
     if (!user) return;
@@ -46,22 +19,16 @@ export const useProfileUpdate = () => {
       let uploadedAvatarUrl = user.avatar_url;
       
       if (file) {
-        const newAvatarUrl = await uploadAvatar(file);
+        const newAvatarUrl = await ProfileService.uploadAvatar(user.id, file);
         if (newAvatarUrl) {
           uploadedAvatarUrl = newAvatarUrl;
         }
       }
       
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ 
-          username, 
-          avatar_url: uploadedAvatarUrl,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", user.id);
-
-      if (profileError) throw profileError;
+      await ProfileService.updateProfile(user.id, { 
+        username, 
+        ...(uploadedAvatarUrl && { avatar_url: uploadedAvatarUrl })
+      });
 
       setUser({ 
         username, 
@@ -77,7 +44,7 @@ export const useProfileUpdate = () => {
       
       return true;
     } catch (error: any) {
-      console.error("Profile update error:", error);
+      console.error("Errore nell'aggiornamento del profilo:", error);
       toast({
         title: "Errore",
         description: error.message || "Impossibile aggiornare il profilo",

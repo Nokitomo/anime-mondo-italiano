@@ -1,10 +1,10 @@
-
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ProfileForm } from "./ProfileForm";
 import { supabase } from "@/integrations/supabase/client";
+import { ProfileService } from "@/services/profile-service";
 
 interface EditProfileDialogProps {
   open: boolean;
@@ -17,22 +17,7 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
 
   const { data: profile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["profile", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("username, avatar_url")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Profile fetch error:", error);
-        return null;
-      }
-      
-      return data;
-    },
+    queryFn: () => user ? ProfileService.getProfile(user.id) : null,
     enabled: !!user && open,
   });
 
