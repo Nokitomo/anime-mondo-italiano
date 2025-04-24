@@ -39,6 +39,11 @@ export interface AnimeMedia {
     }[];
   };
   type: "ANIME" | "MANGA";
+  nextAiringEpisode?: {
+    airingAt: number;
+    timeUntilAiring: number;
+    episode: number;
+  };
   relations?: {
     edges: {
       relationType: string;

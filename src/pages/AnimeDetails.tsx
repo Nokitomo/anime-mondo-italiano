@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAnimeDetails } from "@/services/anilist-api";
 import { AnimeMedia, relationLabels } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const AnimeDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -85,6 +86,9 @@ const AnimeDetailsPage = () => {
   // Staff
   const staff = anime.staff?.edges || [];
   
+  // Controlla se ci sono relazioni
+  const hasRelations = relations.length > 0;
+  
   return (
     <div>
       <AnimeBanner anime={anime} />
@@ -146,7 +150,7 @@ const AnimeDetailsPage = () => {
                 </dl>
               </section>
               
-              {relations.length > 0 && (
+              {hasRelations && (
                 <section>
                   <h2 className="text-xl font-semibold mb-4">Anime Correlati</h2>
                   <div className="space-y-6">
@@ -158,15 +162,18 @@ const AnimeDetailsPage = () => {
                       return (
                         <div key={relationType} className="space-y-3">
                           <h3 className="text-lg font-medium">{label}</h3>
-                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                            {filteredRelations.map((rel) => (
-                              <AnimeCard
-                                key={rel.node.id}
-                                anime={rel.node as AnimeMedia}
-                                showBadge={false}
-                              />
-                            ))}
-                          </div>
+                          <ScrollArea className="w-full whitespace-nowrap">
+                            <div className="flex gap-4 pb-4">
+                              {filteredRelations.map((rel) => (
+                                <div key={rel.node.id} className="w-[180px] shrink-0">
+                                  <AnimeCard
+                                    anime={rel.node as AnimeMedia}
+                                    showBadge={false}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </ScrollArea>
                         </div>
                       );
                     })}
@@ -177,15 +184,18 @@ const AnimeDetailsPage = () => {
               {recommendations.length > 0 && (
                 <section>
                   <h2 className="text-xl font-semibold mb-4">Anime Consigliati</h2>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {recommendations.slice(0, 6).map((rec) => (
-                      <AnimeCard
-                        key={rec.id}
-                        anime={rec as AnimeMedia}
-                        showBadge={false}
-                      />
-                    ))}
-                  </div>
+                  <ScrollArea className="w-full whitespace-nowrap">
+                    <div className="flex gap-4 pb-4">
+                      {recommendations.map((rec) => (
+                        <div key={rec.id} className="w-[180px] shrink-0">
+                          <AnimeCard
+                            anime={rec as AnimeMedia}
+                            showBadge={false}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
                 </section>
               )}
             </div>

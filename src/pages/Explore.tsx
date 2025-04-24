@@ -7,17 +7,27 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Explore = () => {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["trendingAnime"],
-    queryFn: getTrendingAnime
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  
+  const { data, isLoading, error, isFetching, fetchNextPage } = useQuery({
+    queryKey: ["trendingAnime", page],
+    queryFn: () => getTrendingAnime(page, 24), // Carica 24 anime per pagina
+    keepPreviousData: true
   });
+
+  const loadMore = () => {
+    if (!isFetching && hasMore) {
+      setPage(prev => prev + 1);
+    }
+  };
 
   if (isLoading) {
     return (
       <div className="container py-8">
         <h1 className="text-3xl font-bold mb-6">Esplora</h1>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {Array(12).fill(0).map((_, i) => (
+          {Array(24).fill(0).map((_, i) => (
             <AnimeCardSkeleton key={i} />
           ))}
         </div>
@@ -30,12 +40,17 @@ const Explore = () => {
       <div className="container py-8 text-center">
         <h1 className="text-3xl font-bold mb-6">Esplora</h1>
         <p className="text-red-600 mb-4">Si è verificato un errore nel caricamento degli anime.</p>
-        <Button variant="outline">Riprova</Button>
+        <Button variant="outline" onClick={() => setPage(1)}>Riprova</Button>
       </div>
     );
   }
 
   const { trending, popular, upcoming } = data.data;
+  
+  // Verifica se ci sono ancora anime da caricare
+  if (trending.media.length < 24) {
+    setHasMore(false);
+  }
 
   return (
     <div className="container py-8">
@@ -51,15 +66,28 @@ const Explore = () => {
         <TabsContent value="trending">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {trending.media.map((anime) => (
-              <AnimeCard key={anime.id} anime={anime} />
+              <AnimeCard key={`trending-${anime.id}`} anime={anime} />
             ))}
           </div>
+          
+          {hasMore && (
+            <div className="flex justify-center mt-8">
+              <Button 
+                onClick={loadMore}
+                disabled={isFetching}
+                variant="outline"
+                className="min-w-[200px]"
+              >
+                {isFetching ? "Caricamento..." : "Carica altri anime"}
+              </Button>
+            </div>
+          )}
         </TabsContent>
         
         <TabsContent value="popular">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {popular.media.map((anime) => (
-              <AnimeCard key={anime.id} anime={anime} />
+              <AnimeCard key={`popular-${anime.id}`} anime={anime} />
             ))}
           </div>
         </TabsContent>
@@ -67,7 +95,7 @@ const Explore = () => {
         <TabsContent value="upcoming">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {upcoming.media.map((anime) => (
-              <AnimeCard key={anime.id} anime={anime} />
+              <AnimeCard key={`upcoming-${anime.id}`} anime={anime} />
             ))}
           </div>
         </TabsContent>

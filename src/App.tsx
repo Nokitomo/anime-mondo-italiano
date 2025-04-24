@@ -14,6 +14,7 @@ import AnimeDetailsPage from "./pages/AnimeDetails";
 import LoginPage from "./pages/Login";
 import RegisterPage from "./pages/Register";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/anime/:id" element={<AnimeDetailsPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/registrazione" element={<RegisterPage />} />
+              <Route path="/profilo" element={<Profile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

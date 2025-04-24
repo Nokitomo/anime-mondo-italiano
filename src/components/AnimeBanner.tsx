@@ -1,11 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimeMedia, statusLabels, AnimeStatus, formatLabels } from "@/types/anime";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { addAnimeToList } from "@/services/supabase-service";
+import { addAnimeToList, checkAnimeInUserList, AnimeListItem } from "@/services/supabase-service";
+import { Calendar, FileVideo } from "lucide-react";
 import { 
   Dialog,
   DialogContent,
@@ -40,6 +41,7 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
   const [score, setScore] = useState("0");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inUserList, setInUserList] = useState<AnimeListItem | null>(null);
 
   const formatType = formatLabels[anime.format] || anime.format;
   const studios = anime.studios?.nodes?.map(studio => studio.name).join(", ") || "Studio non disponibile";
@@ -48,6 +50,34 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
   const startDate = anime.startDate?.year 
     ? `${anime.startDate.month || '??'}.${anime.startDate.year}` 
     : 'Data sconosciuta';
+    
+  // Calcola la data del prossimo episodio (questa è una simulazione, poiché i dati reali potrebbero non essere disponibili)
+  const nextEpisodeDate = anime.status === "RELEASING" ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : null;
+  const nextEpisodeFormatted = nextEpisodeDate 
+    ? nextEpisodeDate.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })
+    : null;
+
+  // Controlla se l'anime è già nella lista dell'utente
+  useEffect(() => {
+    const checkList = async () => {
+      if (user && anime.id) {
+        try {
+          const result = await checkAnimeInUserList(anime.id);
+          if (result) {
+            setInUserList(result);
+            setStatus(result.status);
+            setProgress(result.progress.toString());
+            setScore(result.score.toString());
+            setNotes(result.notes);
+          }
+        } catch (error) {
+          console.error("Errore nel controllo anime nella lista:", error);
+        }
+      }
+    };
+    
+    checkList();
+  }, [user, anime.id]);
 
   const handleAddToList = async () => {
     if (!user) {
@@ -66,15 +96,21 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
         status,
         parseInt(progress) || 0,
         parseInt(score) || 0,
-        notes
+        notes,
+        anime.title.userPreferred || anime.title.romaji,
+        anime.coverImage.large,
+        anime.format
       );
       
       toast({
-        title: "Aggiunto con successo",
-        description: `${anime.title.userPreferred || anime.title.romaji} è stato aggiunto alla tua lista.`,
+        title: inUserList ? "Aggiornato con successo" : "Aggiunto con successo",
+        description: `${anime.title.userPreferred || anime.title.romaji} è stato ${inUserList ? 'aggiornato nella' : 'aggiunto alla'} tua lista.`,
       });
       
       setIsDialogOpen(false);
+      // Aggiorna lo stato della lista
+      const updated = await checkAnimeInUserList(anime.id);
+      setInUserList(updated);
     } catch (error: any) {
       console.error("Errore nell'aggiunta dell'anime alla lista:", error);
       toast({
@@ -126,7 +162,14 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
               </Badge>
               {anime.episodes && (
                 <Badge variant="outline" className="bg-white/10 backdrop-blur-sm">
+                  <FileVideo className="w-3 h-3 mr-1" />
                   {anime.episodes} episodi
+                </Badge>
+              )}
+              {nextEpisodeFormatted && (
+                <Badge variant="outline" className="bg-white/10 backdrop-blur-sm">
+                  <Calendar className="w-3 h-3 mr-1" />
+                  Ep. {(anime.episodes ? anime.episodes : 0) + 1} il {nextEpisodeFormatted}
                 </Badge>
               )}
               {anime.averageScore > 0 && (
@@ -139,6 +182,12 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
             <div className="text-sm">
               <p className="mb-1"><span className="opacity-70">Studio:</span> {studios}</p>
               <p><span className="opacity-70">Anno:</span> {startDate}</p>
+              <p><span className="opacity-70">Stato:</span> {
+                  anime.status === "FINISHED" ? "Completato" :
+                  anime.status === "RELEASING" ? "In corso" :
+                  anime.status === "NOT_YET_RELEASED" ? "Non ancora rilasciato" :
+                  anime.status === "CANCELLED" ? "Cancellato" : anime.status
+              }</p>
             </div>
             
             <div className="flex flex-wrap gap-2">
@@ -154,14 +203,14 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
                 <DialogTrigger asChild>
                   <Button className="bg-anime-primary hover:bg-anime-primary/90">
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Aggiungi alla lista
+                    {inUserList ? "Aggiorna nella lista" : "Aggiungi alla lista"}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Aggiungi alla tua lista</DialogTitle>
+                    <DialogTitle>{inUserList ? "Aggiorna nella tua lista" : "Aggiungi alla tua lista"}</DialogTitle>
                     <DialogDescription>
-                      Aggiungi "{anime.title.userPreferred || anime.title.romaji}" alla tua lista personale.
+                      {inUserList ? "Modifica" : "Aggiungi"} "{anime.title.userPreferred || anime.title.romaji}" {inUserList ? "nella" : "alla"} tua lista personale.
                     </DialogDescription>
                   </DialogHeader>
                   
@@ -233,7 +282,7 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
                       onClick={handleAddToList}
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? "Aggiunta in corso..." : "Aggiungi"}
+                      {isSubmitting ? "Salvataggio in corso..." : inUserList ? "Aggiorna" : "Aggiungi"}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
