@@ -1,50 +1,34 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const RegisterPage = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const { register, loading, error } = useAuth();
+  const navigate = useNavigate();
   
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!username || !email || !password) {
-      toast({
-        title: "Errore",
-        description: "Compila tutti i campi richiesti",
-        variant: "destructive",
-      });
       return;
     }
     
     if (password !== confirmPassword) {
-      toast({
-        title: "Errore",
-        description: "Le password non coincidono",
-        variant: "destructive",
-      });
       return;
     }
     
-    setLoading(true);
-    
-    // Simuliamo la registrazione (da implementare con Supabase)
-    setTimeout(() => {
-      toast({
-        title: "Info",
-        description: "Funzionalità di registrazione non ancora implementata",
-      });
-      setLoading(false);
-    }, 1000);
+    const success = await register(email, password, username);
+    if (success) {
+      navigate('/login');
+    }
   };
   
   return (
@@ -58,6 +42,12 @@ const RegisterPage = () => {
         </div>
         
         <form onSubmit={handleRegister} className="space-y-6">
+          {error && (
+            <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-md">
+              {error}
+            </div>
+          )}
+          
           <div className="space-y-2">
             <Label htmlFor="username">Nome utente</Label>
             <Input
