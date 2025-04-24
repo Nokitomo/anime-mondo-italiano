@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 interface AnimeCardProps {
   anime: AnimeMedia;
   showBadge?: boolean;
+  statusBadge?: string;
 }
 
-export function AnimeCard({ anime, showBadge = true }: AnimeCardProps) {
+export function AnimeCard({ anime, showBadge = true, statusBadge }: AnimeCardProps) {
   const formatType = formatLabels[anime.format] || anime.format;
   
   return (
@@ -26,6 +27,13 @@ export function AnimeCard({ anime, showBadge = true }: AnimeCardProps) {
             <div className="absolute top-2 right-2">
               <Badge variant="secondary" className="text-xs font-medium">
                 {anime.type === "ANIME" ? formatType : "Manga"}
+              </Badge>
+            </div>
+          )}
+          {statusBadge && (
+            <div className="absolute top-2 left-2">
+              <Badge variant="outline" className="text-xs bg-background/80 backdrop-blur-sm">
+                {statusBadge}
               </Badge>
             </div>
           )}
