@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getUserAnimeList, AnimeListItem, updateAnimeInList, removeAnimeFromList } from "@/services/supabase-service";
@@ -6,24 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { statusLabels, AnimeStatus } from "@/types/anime";
 import { useToast } from "@/hooks/use-toast";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, Edit, Filter, Plus, Minus, Trash2 } from "lucide-react";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuRadioGroup, 
-  DropdownMenuRadioItem, 
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
-} from "@/components/ui/dropdown-menu";
-
-type SortOption = {
-  field: keyof AnimeListItem | 'title' | 'format';
-  direction: 'asc' | 'desc';
-  label: string;
-};
+import { AnimeListHeader } from "@/components/anime-list/AnimeListHeader";
+import { AnimeListContent } from "@/components/anime-list/AnimeListContent";
+import { AnimeListEmpty } from "@/components/anime-list/AnimeListEmpty";
+import { SortOption } from "@/components/anime-list/types";
 
 const sortOptions: SortOption[] = [
   { field: 'title', direction: 'asc', label: 'Titolo (A-Z)' },
@@ -44,7 +31,7 @@ const AnimeList = () => {
   const [activeTab, setActiveTab] = useState<AnimeStatus>("IN_CORSO");
   const { toast } = useToast();
   const [animeToDelete, setAnimeToDelete] = useState<AnimeListItem | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>(sortOptions[6]); // Default sort by last updated
+  const [sortBy, setSortBy] = useState<SortOption>(sortOptions[6]);
 
   useEffect(() => {
     const fetchUserAnimeList = async () => {
@@ -142,18 +129,11 @@ const AnimeList = () => {
         return sortBy.direction === 'asc' ? fieldA - fieldB : fieldB - fieldA;
       }
       
-      if (fieldA instanceof Date && fieldB instanceof Date) {
-        return sortBy.direction === 'asc' 
-          ? fieldA.getTime() - fieldB.getTime() 
-          : fieldB.getTime() - fieldA.getTime();
-      }
-      
+      // Handle date strings
       if (sortBy.field === 'updated_at' || sortBy.field === 'created_at') {
-        const dateA = new Date(String(fieldA));
-        const dateB = new Date(String(fieldB));
-        return sortBy.direction === 'asc' 
-          ? dateA.getTime() - dateB.getTime() 
-          : dateB.getTime() - dateA.getTime();
+        const dateA = new Date(String(fieldA)).getTime();
+        const dateB = new Date(String(fieldB)).getTime();
+        return sortBy.direction === 'asc' ? dateA - dateB : dateB - dateA;
       }
       
       return 0;
@@ -172,47 +152,13 @@ const AnimeList = () => {
     );
   }
 
-  const filteredList = sortedAndFilteredList();
-
   return (
     <div className="container py-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <h1 className="text-3xl font-bold">Le mie liste</h1>
-        
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1">
-                <Filter className="h-4 w-4 mr-1" />
-                Ordina: {sortBy.label}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuRadioGroup value={`${sortBy.field}-${sortBy.direction}`} onValueChange={(value) => {
-                const [field, direction] = value.split('-') as [keyof AnimeListItem, 'asc' | 'desc'];
-                const option = sortOptions.find(o => o.field === field && o.direction === direction);
-                if (option) setSortBy(option);
-              }}>
-                {sortOptions.map((option, index) => (
-                  <DropdownMenuRadioItem 
-                    key={`${option.field}-${option.direction}`} 
-                    value={`${option.field}-${option.direction}`}
-                  >
-                    {option.label}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <Button asChild variant="default">
-            <Link to="/esplora">
-              <Plus className="h-4 w-4 mr-1" />
-              Aggiungi anime
-            </Link>
-          </Button>
-        </div>
-      </div>
+      <AnimeListHeader 
+        sortBy={sortBy} 
+        onSortChange={setSortBy} 
+        sortOptions={sortOptions}
+      />
       
       <Tabs
         defaultValue="IN_CORSO"
@@ -239,115 +185,18 @@ const AnimeList = () => {
                 <p className="text-red-600 mb-4">{error}</p>
                 <Button variant="outline">Riprova</Button>
               </div>
-            ) : filteredList.length > 0 ? (
-              <div className="space-y-4">
-                <Table>
-                  <TableCaption>
-                    La tua lista contiene {filteredList.length} anime nella categoria {statusLabels[activeTab as AnimeStatus]}.
-                  </TableCaption>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Copertina</TableHead>
-                      <TableHead>Titolo</TableHead>
-                      <TableHead>Formato</TableHead>
-                      <TableHead>Progresso</TableHead>
-                      <TableHead>Voto</TableHead>
-                      <TableHead className="text-right">Azioni</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredList.map((anime) => (
-                      <TableRow key={anime.id}>
-                        <TableCell>
-                          <Link to={`/anime/${anime.anime_id}`}>
-                            <img 
-                              src={anime.cover_image || "/placeholder.svg"} 
-                              alt={anime.title || `Anime #${anime.anime_id}`} 
-                              className="w-16 h-24 object-cover rounded"
-                            />
-                          </Link>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          <Link to={`/anime/${anime.anime_id}`} className="hover:underline">
-                            {anime.title || `Anime #${anime.anime_id}`}
-                          </Link>
-                        </TableCell>
-                        <TableCell>{anime.format || "N/A"}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Button 
-                              size="icon" 
-                              variant="outline" 
-                              className="h-7 w-7" 
-                              onClick={() => handleUpdateProgress(anime, -1)}
-                              disabled={anime.progress <= 0}
-                            >
-                              <Minus className="h-3 w-3" />
-                            </Button>
-                            <span>{anime.progress}</span>
-                            <Button 
-                              size="icon" 
-                              variant="outline" 
-                              className="h-7 w-7" 
-                              onClick={() => handleUpdateProgress(anime, 1)}
-                            >
-                              <Plus className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                        <TableCell>{anime.score > 0 ? `${anime.score}/10` : "—"}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end space-x-2">
-                            <Button variant="ghost" size="icon" asChild>
-                              <Link to={`/anime/${anime.anime_id}`}>
-                                <Edit className="h-4 w-4" />
-                              </Link>
-                            </Button>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  className="text-destructive hover:bg-destructive/10"
-                                  onClick={() => setAnimeToDelete(anime)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Conferma eliminazione</DialogTitle>
-                                </DialogHeader>
-                                <p className="py-4">
-                                  Sei sicuro di voler rimuovere <strong>{animeToDelete?.title || 'questo anime'}</strong> dalla tua lista?
-                                  Questa azione non può essere annullata.
-                                </p>
-                                <DialogFooter>
-                                  <Button variant="outline" onClick={() => setAnimeToDelete(null)}>
-                                    Annulla
-                                  </Button>
-                                  <Button variant="destructive" onClick={handleDeleteAnime}>
-                                    Elimina
-                                  </Button>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+            ) : sortedAndFilteredList().length > 0 ? (
+              <AnimeListContent
+                items={sortedAndFilteredList()}
+                activeTab={activeTab as AnimeStatus}
+                onDeleteClick={setAnimeToDelete}
+                onProgressUpdate={handleUpdateProgress}
+                animeToDelete={animeToDelete}
+                onCancelDelete={() => setAnimeToDelete(null)}
+                onConfirmDelete={handleDeleteAnime}
+              />
             ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">
-                  Non hai ancora aggiunto anime a questa lista.
-                </p>
-                <Button asChild>
-                  <Link to="/esplora">Esplora anime</Link>
-                </Button>
-              </div>
+              <AnimeListEmpty />
             )}
           </TabsContent>
         ))}
