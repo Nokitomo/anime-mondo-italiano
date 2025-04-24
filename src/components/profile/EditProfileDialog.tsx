@@ -25,10 +25,9 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [fileToUpload, setFileToUpload] = useState<File | null>(null);
 
-  // Utilizziamo useQuery per ottenere il profilo utente
+  // Fetch user profile with robust error handling
   const { data: profile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
@@ -39,31 +38,26 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
           .from("profiles")
           .select("username, avatar_url")
           .eq("id", user.id)
-          .single();
-          
+          .maybeSingle();
+
         if (error) {
-          console.error("Errore nel caricamento del profilo:", error);
+          console.error("Profile fetch error:", error);
           return null;
         }
         
         return data;
       } catch (error) {
-        console.error("Errore nella query del profilo:", error);
+        console.error("Unexpected profile fetch error:", error);
         return null;
       }
     },
     enabled: !!user && open,
   });
 
-  // Aggiorniamo lo stato locale quando il profilo viene caricato
   useEffect(() => {
     if (profile) {
-      if (profile.username) {
-        setUsername(profile.username);
-      }
-      if (profile.avatar_url) {
-        setAvatarUrl(profile.avatar_url);
-      }
+      setUsername(profile.username || "");
+      setAvatarUrl(profile.avatar_url || null);
     }
   }, [profile, open]);
 
@@ -81,7 +75,6 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
       
       setFileToUpload(file);
       
-      // Preview dell'immagine
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarUrl(reader.result as string);
@@ -93,28 +86,13 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
   const uploadAvatar = async () => {
     if (!user || !fileToUpload) return null;
     
-    setUploadingAvatar(true);
     try {
       const fileExt = fileToUpload.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = fileName;
-      
-      // Verifichiamo che il bucket esista
-      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
-      
-      if (bucketsError) {
-        throw new Error(`Errore durante la verifica dei bucket: ${bucketsError.message}`);
-      }
-      
-      const avatarBucketExists = buckets.some(bucket => bucket.name === 'avatars');
-      
-      if (!avatarBucketExists) {
-        throw new Error("Il bucket 'avatars' non esiste. Contatta l'amministratore.");
-      }
       
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, fileToUpload, {
+        .upload(fileName, fileToUpload, {
           cacheControl: '3600',
           upsert: true
         });
@@ -123,25 +101,18 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
       
       const { data } = await supabase.storage
         .from('avatars')
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
         
       return data.publicUrl;
     } catch (error: any) {
-      console.error("Errore durante il caricamento dell'immagine:", error);
+      console.error("Avatar upload error:", error);
       toast({
         title: "Errore",
-        description: `Errore durante il caricamento dell'immagine: ${error.message}`,
+        description: `Impossibile caricare l'avatar: ${error.message}`,
         variant: "destructive",
       });
       return null;
-    } finally {
-      setUploadingAvatar(false);
     }
-  };
-
-  const removeAvatar = () => {
-    setAvatarUrl(null);
-    setFileToUpload(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -152,48 +123,38 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
     try {
       let uploadedAvatarUrl = avatarUrl;
       
-      // Upload avatar if there's a new file
+      // Upload avatar if new file exists
       if (fileToUpload) {
-        uploadedAvatarUrl = await uploadAvatar();
-        if (!uploadedAvatarUrl) {
-          setLoading(false);
-          return;
+        const newAvatarUrl = await uploadAvatar();
+        if (newAvatarUrl) {
+          uploadedAvatarUrl = newAvatarUrl;
         }
       }
       
-      console.log("Aggiornamento profilo con:", { username, avatar_url: uploadedAvatarUrl });
-      
-      // Aggiorna il profilo
+      // Update profile
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ 
-          username,
+          username, 
           avatar_url: uploadedAvatarUrl,
           updated_at: new Date().toISOString()
         })
         .eq("id", user.id);
 
-      if (profileError) {
-        console.error("Errore nell'aggiornamento del profilo:", profileError);
-        throw profileError;
-      }
+      if (profileError) throw profileError;
 
-      // Update user context with new username and avatar
+      // Update user context
       setUser({ 
         username, 
         ...(uploadedAvatarUrl && { avatar_url: uploadedAvatarUrl }) 
       });
 
-      // Aggiorna email se modificata
+      // Optional: Update email or password
       if (email !== user.email) {
-        const { error: emailError, data } = await supabase.auth.updateUser({ email });
+        const { error: emailError } = await supabase.auth.updateUser({ email });
         if (emailError) throw emailError;
-        if (data.user) {
-          setUser({ email: data.user.email });
-        }
       }
 
-      // Aggiorna password se inserita
       if (password) {
         const { error: passwordError } = await supabase.auth.updateUser({ password });
         if (passwordError) throw passwordError;
@@ -204,15 +165,15 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
         description: "Le modifiche sono state salvate con successo",
       });
       
-      // Invalidate queries to refresh data
+      // Refresh queries
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       
       onOpenChange(false);
     } catch (error: any) {
-      console.error("Errore durante l'aggiornamento:", error);
+      console.error("Profile update error:", error);
       toast({
         title: "Errore",
-        description: error.message || "Si è verificato un errore durante l'aggiornamento",
+        description: error.message || "Impossibile aggiornare il profilo",
         variant: "destructive",
       });
     } finally {
@@ -238,8 +199,8 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
                   {avatarUrl ? (
                     <AvatarImage src={avatarUrl} alt="Profile" className="object-cover" />
                   ) : (
-                    <AvatarFallback className="text-4xl">
-                      {username ? username[0].toUpperCase() : email ? email[0].toUpperCase() : "U"}
+                    <AvatarFallback>
+                      {username ? username[0].toUpperCase() : email[0].toUpperCase()}
                     </AvatarFallback>
                   )}
                 </Avatar>
@@ -256,21 +217,7 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
                   onChange={handleFileChange}
                   className="hidden"
                 />
-                {avatarUrl && (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-                    onClick={removeAvatar}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                )}
               </div>
-              <span className="text-sm text-muted-foreground">
-                Clicca sull'immagine per cambiarla
-              </span>
             </div>
             
             <div>
@@ -284,36 +231,13 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
                 placeholder="Il tuo nome utente"
               />
             </div>
-            <div>
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="La tua email"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="text-sm font-medium">
-                Nuova password
-              </label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Lascia vuoto per non modificare"
-              />
-            </div>
+            
             <div className="flex justify-end gap-4">
               <Button variant="outline" onClick={() => onOpenChange(false)} type="button">
                 Annulla
               </Button>
-              <Button type="submit" disabled={loading || uploadingAvatar}>
-                {loading || uploadingAvatar ? "Salvataggio..." : "Salva"}
+              <Button type="submit" disabled={loading}>
+                {loading ? "Salvataggio..." : "Salva"}
               </Button>
             </div>
           </form>
