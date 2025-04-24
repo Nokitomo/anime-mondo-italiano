@@ -71,15 +71,29 @@ export const AnimeAddToList = ({ anime, inUserList, onListUpdate }: AnimeAddToLi
       });
       
       setIsDialogOpen(false);
-      const updated = await checkAnimeInUserList(anime.id);
-      onListUpdate(updated);
+      try {
+        const updated = await checkAnimeInUserList(anime.id);
+        onListUpdate(updated);
+      } catch (error) {
+        console.error("Errore nel controllo anime nella lista dopo l'aggiornamento:", error);
+      }
     } catch (error: any) {
       console.error("Errore nell'aggiunta dell'anime alla lista:", error);
-      toast({
-        title: "Errore",
-        description: error.message || "Impossibile aggiungere l'anime alla lista.",
-        variant: "destructive",
-      });
+
+      // Messaggio personalizzato per l'errore di tabella mancante
+      if (error.message && error.message.includes("anime_list non esiste")) {
+        toast({
+          title: "Configurazione richiesta",
+          description: "La tabella anime_list non esiste nel tuo database Supabase. Controlla la console per maggiori informazioni.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Errore",
+          description: error.message || "Impossibile aggiungere l'anime alla lista.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }

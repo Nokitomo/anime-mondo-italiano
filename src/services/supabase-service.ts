@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/database.types';
 
@@ -105,8 +104,44 @@ export type AnimeListItem = {
   updated_at: string;
 };
 
+// Verifica se la tabella anime_list esiste nel database
+export const checkAnimeListTableExists = async (): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('anime_list')
+      .select('id')
+      .limit(1);
+    
+    // Se non c'è errore, la tabella esiste
+    return !error;
+  } catch (error) {
+    console.error('Errore nella verifica della tabella anime_list:', error);
+    return false;
+  }
+};
+
+// Crea la tabella anime_list se non esiste
+export const createAnimeListTable = async (): Promise<boolean> => {
+  try {
+    // In realtà non possiamo creare tabelle tramite API client
+    // Questo dovrebbe essere fatto tramite l'interfaccia di Supabase
+    console.warn('La tabella anime_list non esiste nel database. Vai su https://supabase.com e crea la tabella manualmente.');
+    return false;
+  } catch (error) {
+    console.error('Errore nella creazione della tabella anime_list:', error);
+    return false;
+  }
+};
+
 export const getUserAnimeList = async (userId: string): Promise<AnimeListItem[]> => {
   try {
+    // Verifica se la tabella esiste
+    const tableExists = await checkAnimeListTableExists();
+    if (!tableExists) {
+      console.warn('La tabella anime_list non esiste. Restituisco un array vuoto.');
+      return [];
+    }
+    
     const { data, error } = await supabase
       .from('anime_list')
       .select('*')
@@ -139,6 +174,13 @@ export const addAnimeToList = async (
     
     if (!user) {
       throw new Error('Utente non autenticato');
+    }
+    
+    // Verifica se la tabella esiste
+    const tableExists = await checkAnimeListTableExists();
+    if (!tableExists) {
+      await createAnimeListTable();
+      throw new Error('La tabella anime_list non esiste nel database. È necessario crearla manualmente tramite l\'interfaccia di Supabase.');
     }
     
     // Verifica se l'anime è già nella lista
@@ -276,6 +318,13 @@ export const checkAnimeInUserList = async (animeId: number): Promise<AnimeListIt
     const user = await getCurrentUser();
     
     if (!user) {
+      return null;
+    }
+    
+    // Verifica se la tabella esiste
+    const tableExists = await checkAnimeListTableExists();
+    if (!tableExists) {
+      console.warn('La tabella anime_list non esiste. Restituisco null.');
       return null;
     }
     
