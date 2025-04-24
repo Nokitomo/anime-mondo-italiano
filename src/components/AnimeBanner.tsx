@@ -5,6 +5,7 @@ import { checkAnimeInUserList, AnimeListItem } from "@/services/supabase-service
 import { AnimeTitle } from "./anime/AnimeTitle";
 import { AnimeMetadata } from "./anime/AnimeMetadata";
 import { AnimeAddToList } from "./anime/AnimeAddToList";
+import { AnimeListControls } from "./anime/AnimeListControls";
 import { Badge } from "@/components/ui/badge";
 
 interface AnimeBannerProps {
@@ -65,7 +66,7 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
             />
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-4 flex-1">
             <AnimeTitle title={anime.title} />
             <AnimeMetadata anime={anime} nextEpisodeFormatted={nextEpisodeFormatted} />
             
@@ -88,12 +89,20 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
               ))}
             </div>
             
-            <div className="flex gap-2 pt-2">
-              <AnimeAddToList 
-                anime={anime} 
-                inUserList={inUserList} 
-                onListUpdate={setInUserList} 
-              />
+            <div className="pt-2">
+              {!inUserList ? (
+                <AnimeAddToList 
+                  anime={anime} 
+                  inUserList={inUserList} 
+                  onListUpdate={setInUserList} 
+                />
+              ) : (
+                <AnimeListControls
+                  anime={anime}
+                  inUserList={inUserList}
+                  onListUpdate={setInUserList}
+                />
+              )}
             </div>
           </div>
         </div>

@@ -10,10 +10,12 @@ import { getAnimeDetails } from "@/services/anilist-api";
 import { AnimeMedia, relationLabels } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { checkAnimeInUserList } from "@/services/supabase-service";
 
 const AnimeDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const [translatedDescription, setTranslatedDescription] = useState<string>("");
+  const [userNotes, setUserNotes] = useState<string>("");
   
   const { data, isLoading, error } = useQuery({
     queryKey: ["animeDetails", id],
@@ -38,6 +40,12 @@ const AnimeDetailsPage = () => {
     
     if (anime) {
       translateDescription();
+      // Controlla se l'anime è nella lista dell'utente per ottenere le note
+      checkAnimeInUserList(anime.id).then(listItem => {
+        if (listItem?.notes) {
+          setUserNotes(listItem.notes);
+        }
+      });
     }
   }, [anime]);
   
@@ -94,6 +102,15 @@ const AnimeDetailsPage = () => {
       <AnimeBanner anime={anime} />
       
       <div className="container py-8">
+        {userNotes && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">Note personali</h2>
+            <div className="prose prose-lg dark:prose-invert max-w-none">
+              <p className="whitespace-pre-line">{userNotes}</p>
+            </div>
+          </div>
+        )}
+        
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="overview">Panoramica</TabsTrigger>
