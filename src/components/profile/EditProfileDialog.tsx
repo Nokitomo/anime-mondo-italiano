@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -137,15 +136,18 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
 
       if (profileError) throw profileError;
 
+      // Update user context with new username and avatar
+      setUser({ 
+        username, 
+        ...(uploadedAvatarUrl && { avatar_url: uploadedAvatarUrl }) 
+      });
+
       // Aggiorna email se modificata
       if (email !== user.email) {
         const { error: emailError, data } = await supabase.auth.updateUser({ email });
         if (emailError) throw emailError;
         if (data.user) {
-          setUser({
-            ...user,
-            email: data.user.email
-          });
+          setUser({ email: data.user.email });
         }
       }
 

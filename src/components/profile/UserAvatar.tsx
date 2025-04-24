@@ -8,12 +8,12 @@ import { EditProfileDialog } from "./EditProfileDialog";
 interface UserAvatarProps {
   email: string | undefined;
   username?: string;
-  avatarUrl?: string | null;
 }
 
-export const UserAvatar = ({ email, username, avatarUrl }: UserAvatarProps) => {
+export const UserAvatar = ({ email, username }: UserAvatarProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const userInitial = username ? username[0].toUpperCase() : email ? email[0].toUpperCase() : "U";
+  const displayName = username || email || "Utente";
 
   return (
     <div className="relative flex flex-col items-center mb-8">
@@ -26,13 +26,9 @@ export const UserAvatar = ({ email, username, avatarUrl }: UserAvatarProps) => {
         <Cog className="h-5 w-5" />
       </Button>
       <Avatar className="h-24 w-24 mb-4">
-        {avatarUrl ? (
-          <AvatarImage src={avatarUrl} alt="Profile" className="object-cover" />
-        ) : (
-          <AvatarFallback className="text-4xl">{userInitial}</AvatarFallback>
-        )}
+        <AvatarFallback className="text-4xl">{userInitial}</AvatarFallback>
       </Avatar>
-      <h2 className="text-2xl font-bold">{username || email}</h2>
+      <h2 className="text-2xl font-bold">{displayName}</h2>
       <EditProfileDialog 
         open={isEditOpen} 
         onOpenChange={setIsEditOpen}

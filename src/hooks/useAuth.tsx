@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from "react";
 import { supabase, signIn, signUp, signOut } from "../services/supabase-service";
 import { useToast } from "@/hooks/use-toast";
@@ -6,13 +5,14 @@ import { useToast } from "@/hooks/use-toast";
 type User = {
   id: string;
   email?: string;
+  username?: string;
 };
 
 type AuthContextType = {
   user: User | null;
   loading: boolean;
   error: string | null;
-  setUser: (user: User) => void;
+  setUser: (updates: Partial<User>) => void;
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string, username: string) => Promise<boolean>;
   logout: () => Promise<boolean>;
@@ -21,20 +21,30 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUserState] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const setUser = (updates: Partial<User>) => {
+    setUserState(prevUser => prevUser ? { ...prevUser, ...updates } : null);
+  };
+
   useEffect(() => {
-    // Controlla se l'utente è già autenticato al caricamento
     const checkUser = async () => {
       try {
         const { data } = await supabase.auth.getSession();
         if (data.session?.user) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('id', data.session.user.id)
+            .single();
+
           setUser({
             id: data.session.user.id,
             email: data.session.user.email,
+            username: profileData?.username || undefined
           });
         }
       } catch (error) {
@@ -45,29 +55,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    // Ascolta i cambiamenti nell'autenticazione
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         if (event === "SIGNED_IN" && session?.user) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('id', session.user.id)
+            .single();
+
           setUser({
             id: session.user.id,
             email: session.user.email,
+            username: profileData?.username || undefined
           });
           setError(null);
         } else if (event === "SIGNED_OUT") {
           setUser(null);
-        } else if (event === "USER_UPDATED" && session?.user) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email,
-          });
         }
       }
     );
 
     checkUser();
     
-    // Pulizia dell'ascoltatore quando il componente viene smontato
     return () => {
       authListener.subscription.unsubscribe();
     };
