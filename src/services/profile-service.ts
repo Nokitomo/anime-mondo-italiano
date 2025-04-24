@@ -8,7 +8,7 @@ export class ProfileService {
   static async getProfile(userId: string): Promise<Profile | null> {
     const { data, error } = await supabase
       .from("profiles")
-      .select("username, avatar_url")
+      .select("*")  // Select all fields instead of just username and avatar_url
       .eq("id", userId)
       .maybeSingle();
 
