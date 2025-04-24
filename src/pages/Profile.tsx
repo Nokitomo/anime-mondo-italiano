@@ -8,6 +8,54 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { statusLabels, AnimeStatus } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
 
+// Create a partial type for the anime data from user list
+type AnimePartial = {
+  id: number;
+  title: {
+    romaji: string;
+    english: string;
+    native: string;
+    userPreferred: string;
+  };
+  coverImage: {
+    large: string;
+    medium: string;
+  };
+  format: string;
+  type: "ANIME" | "MANGA";
+  genres: string[];
+  bannerImage: string | null;
+  description: string;
+  episodes: number | null;
+  chapters: number | null;
+  averageScore: number;
+  meanScore: number;
+  status: string;
+  season: string;
+  seasonYear: number;
+  startDate: {
+    year: number;
+    month: number;
+    day: number;
+  };
+  endDate: {
+    year: number;
+    month: number;
+    day: number;
+  };
+  studios: {
+    nodes: {
+      id: number;
+      name: string;
+    }[];
+  };
+  nextAiringEpisode?: {
+    airingAt: number;
+    timeUntilAiring: number;
+    episode: number;
+  };
+};
+
 const Profile = () => {
   const { user, loading } = useAuth();
   
@@ -90,7 +138,29 @@ const Profile = () => {
                     },
                     format: item.format || "",
                     type: "ANIME",
-                    genres: []
+                    genres: [],
+                    bannerImage: null,
+                    description: "",
+                    episodes: null,
+                    chapters: null,
+                    averageScore: 0,
+                    meanScore: 0,
+                    status: "",
+                    season: "",
+                    seasonYear: 0,
+                    startDate: {
+                      year: 0,
+                      month: 0,
+                      day: 0
+                    },
+                    endDate: {
+                      year: 0,
+                      month: 0,
+                      day: 0
+                    },
+                    studios: {
+                      nodes: []
+                    }
                   }}
                   statusBadge={statusLabels[item.status]}
                 />
@@ -119,7 +189,29 @@ const Profile = () => {
                         },
                         format: item.format || "",
                         type: "ANIME",
-                        genres: []
+                        genres: [],
+                        bannerImage: null,
+                        description: "",
+                        episodes: null,
+                        chapters: null,
+                        averageScore: 0,
+                        meanScore: 0,
+                        status: "",
+                        season: "",
+                        seasonYear: 0,
+                        startDate: {
+                          year: 0,
+                          month: 0,
+                          day: 0
+                        },
+                        endDate: {
+                          year: 0,
+                          month: 0,
+                          day: 0
+                        },
+                        studios: {
+                          nodes: []
+                        }
                       }}
                     />
                   ))}

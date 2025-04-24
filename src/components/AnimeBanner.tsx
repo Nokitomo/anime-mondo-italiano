@@ -5,6 +5,7 @@ import { checkAnimeInUserList, AnimeListItem } from "@/services/supabase-service
 import { AnimeTitle } from "./anime/AnimeTitle";
 import { AnimeMetadata } from "./anime/AnimeMetadata";
 import { AnimeAddToList } from "./anime/AnimeAddToList";
+import { Badge } from "@/components/ui/badge";
 
 interface AnimeBannerProps {
   anime: AnimeMedia;
