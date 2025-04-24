@@ -2,10 +2,10 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/database.types';
 
-// Inizializzazione del cliente Supabase
+// Inizializzazione del cliente Supabase con la chiave pubblica
 export const supabase = createClient<Database>(
   'https://buzymhfvxyescbrqguga.supabase.co',
-  import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1enltaGZ2eHllc2NicnFndWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1MTE5ODIsImV4cCI6MjA2MTA4Nzk4Mn0.obDrwD4s1is-gphqdv2Vra66md3eXjmJtE4cHUHr-QA'
 );
 
 // Tipi di risposta per l'autenticazione
