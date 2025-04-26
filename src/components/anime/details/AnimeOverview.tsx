@@ -1,4 +1,3 @@
-
 import { AnimeMedia } from "@/types/anime";
 import {
   Carousel,
@@ -26,7 +25,12 @@ interface AnimeOverviewProps {
   recommendations: AnimeMedia[];
 }
 
-export function AnimeOverview({ anime, description, relations, recommendations }: AnimeOverviewProps) {
+export function AnimeOverview({
+  anime,
+  description,
+  relations,
+  recommendations,
+}: AnimeOverviewProps) {
   const hasRelations = relations.length > 0;
 
   return (
@@ -35,7 +39,7 @@ export function AnimeOverview({ anime, description, relations, recommendations }
         <h2 className="text-xl font-semibold mb-4">Sinossi</h2>
         <p className="whitespace-pre-line">{description}</p>
       </section>
-      
+
       <section>
         <h2 className="text-xl font-semibold mb-4">Informazioni</h2>
         <dl className="grid grid-cols-1 md:grid-cols-2 gap-y-2">
@@ -66,18 +70,22 @@ export function AnimeOverview({ anime, description, relations, recommendations }
           {anime.startDate?.year && (
             <>
               <dt className="font-medium">Data di inizio:</dt>
-              <dd>{`${anime.startDate.day || '??'}/${anime.startDate.month || '??'}/${anime.startDate.year}`}</dd>
+              <dd>{`${anime.startDate.day || "??"}/${
+                anime.startDate.month || "??"
+              }/${anime.startDate.year}`}</dd>
             </>
           )}
           {anime.studios?.nodes?.length > 0 && (
             <>
               <dt className="font-medium">Studio:</dt>
-              <dd>{anime.studios.nodes.map(studio => studio.name).join(", ")}</dd>
+              <dd>
+                {anime.studios.nodes.map((studio) => studio.name).join(", ")}
+              </dd>
             </>
           )}
         </dl>
       </section>
-      
+
       {hasRelations && (
         <section>
           <h2 className="text-xl font-semibold mb-4">Anime Correlati</h2>
@@ -85,7 +93,10 @@ export function AnimeOverview({ anime, description, relations, recommendations }
             <Carousel className="w-full">
               <CarouselContent className="-ml-2 md:-ml-4">
                 {relations.map((relation) => (
-                  <CarouselItem key={`${relation.id}-${relation.type}`} className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
+                  <CarouselItem
+                    key={`${relation.id}-${relation.type}`}
+                    className="pl-2 md:pl-4 w-1/5"
+                  >
                     <div>
                       <div className="mb-1 px-2 py-0.5 text-xs font-medium inline-flex bg-primary/10 text-primary rounded">
                         {relation.label}
@@ -104,7 +115,7 @@ export function AnimeOverview({ anime, description, relations, recommendations }
           </div>
         </section>
       )}
-      
+
       {recommendations.length > 0 && (
         <section>
           <h2 className="text-xl font-semibold mb-4">Anime Consigliati</h2>
@@ -112,11 +123,11 @@ export function AnimeOverview({ anime, description, relations, recommendations }
             <Carousel className="w-full">
               <CarouselContent className="-ml-2 md:-ml-4">
                 {recommendations.map((rec) => (
-                  <CarouselItem key={rec.id} className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
-                    <AnimeCard
-                      anime={rec}
-                      showBadge={false}
-                    />
+                  <CarouselItem
+                    key={rec.id}
+                    className="pl-2 md:pl-4 w-1/5"
+                  >
+                    <AnimeCard anime={rec} showBadge={false} />
                   </CarouselItem>
                 ))}
               </CarouselContent>
