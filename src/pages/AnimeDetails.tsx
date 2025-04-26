@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { translateText } from "@/services/translation-service";
@@ -9,10 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAnimeDetails } from "@/services/anilist-api";
 import { AnimeMedia, relationLabels } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { checkAnimeInUserList } from "@/services/supabase-service";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -183,10 +179,16 @@ const AnimeDetailsPage = () => {
                 <section>
                   <h2 className="text-xl font-semibold mb-4">Anime Correlati</h2>
                   <div className="relative">
-                    <Carousel className="w-full">
-                      <CarouselContent>
+                    <Carousel
+                      opts={{
+                        align: "start",
+                        slidesToScroll: 1
+                      }}
+                      className="w-full"
+                    >
+                      <CarouselContent className="-ml-2 md:-ml-4">
                         {formattedRelations.map((relation) => (
-                          <CarouselItem key={`${relation.id}-${relation.type}`} className="md:basis-1/4 lg:basis-1/5">
+                          <CarouselItem key={`${relation.id}-${relation.type}`} className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
                             <div>
                               <div className="mb-1 px-2 py-0.5 text-xs font-medium inline-flex bg-primary/10 text-primary rounded">
                                 {relation.label}
@@ -210,10 +212,16 @@ const AnimeDetailsPage = () => {
                 <section>
                   <h2 className="text-xl font-semibold mb-4">Anime Consigliati</h2>
                   <div className="relative">
-                    <Carousel className="w-full">
-                      <CarouselContent>
+                    <Carousel
+                      opts={{
+                        align: "start",
+                        slidesToScroll: 1
+                      }}
+                      className="w-full"
+                    >
+                      <CarouselContent className="-ml-2 md:-ml-4">
                         {recommendations.map((rec) => (
-                          <CarouselItem key={rec.id} className="md:basis-1/4 lg:basis-1/5">
+                          <CarouselItem key={rec.id} className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
                             <AnimeCard
                               anime={rec as AnimeMedia}
                               showBadge={false}

@@ -5,6 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ProfileForm } from "./ProfileForm";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileService } from "@/services/profile-service";
+import { Separator } from "@/components/ui/separator";
+import { DeleteAccountDialog } from "./DeleteAccountDialog";
 
 interface EditProfileDialogProps {
   open: boolean;
@@ -32,13 +34,20 @@ export const EditProfileDialog = ({ open, onOpenChange, currentUsername }: EditP
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
           </div>
         ) : (
-          <ProfileForm
-            initialUsername={profile?.username || currentUsername || ""}
-            email={user?.email || ""}
-            currentAvatarUrl={profile?.avatar_url || null}
-            onSuccess={() => onOpenChange(false)}
-            onCancel={() => onOpenChange(false)}
-          />
+          <>
+            <ProfileForm
+              initialUsername={profile?.username || currentUsername || ""}
+              email={user?.email || ""}
+              currentAvatarUrl={profile?.avatar_url || null}
+              onSuccess={() => onOpenChange(false)}
+              onCancel={() => onOpenChange(false)}
+            />
+            <Separator className="my-4" />
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-destructive">Zona Pericolosa</h3>
+              <DeleteAccountDialog />
+            </div>
+          </>
         )}
       </DialogContent>
     </Dialog>
