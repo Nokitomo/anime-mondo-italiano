@@ -16,11 +16,11 @@ interface AddToListModalProps {
 }
 
 const statusOptions: { label: string; value: AnimeListItem["status"] }[] = [
-  { label: "In corso", value: "IN_CORSO" },
-  { label: "Completato", value: "COMPLETATO" },
-  { label: "In pausa", value: "IN_PAUSA" },
-  { label: "Abbandonato", value: "ABBANDONATO" },
-  { label: "Pianificato", value: "PIANIFICATO" },
+  { label: "In corso",    value: "IN_CORSO"   },
+  { label: "Completato",  value: "COMPLETATO" },
+  { label: "In pausa",    value: "IN_PAUSA"   },
+  { label: "Abbandonato", value: "ABBANDONATO"},
+  { label: "Pianificato", value: "PIANIFICATO"},
 ]
 
 export function AddToListModal({
@@ -36,10 +36,16 @@ export function AddToListModal({
   )
   const [loading, setLoading] = React.useState(false)
 
+  // All'apertura del modal riallinea il radio al valore corrente
+  React.useEffect(() => {
+    if (open) {
+      setStatus(initial?.status ?? "IN_CORSO")
+    }
+  }, [open, initial])
+
   const handleSubmit = async () => {
     setLoading(true)
     try {
-      // Determina il nuovo progresso in base allo status selezionato
       const newProgress =
         status === "COMPLETATO"
           ? anime.episodes ?? 0
