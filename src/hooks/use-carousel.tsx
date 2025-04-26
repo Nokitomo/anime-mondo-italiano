@@ -1,17 +1,19 @@
-
 import * as React from "react"
 import useEmblaCarousel, {
-  type UseEmblaCarouselType,
+  EmblaOptionsType,
+  EmblaPluginType,
+  EmblaCarouselType,
+  EmblaViewportRefType,
 } from "embla-carousel-react"
 
-export type CarouselApi = UseEmblaCarouselType[1]
-export type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
-export type CarouselOptions = UseCarouselParameters[0]
-export type CarouselPlugin = NonNullable<UseCarouselParameters[1]>
+export type CarouselOptions = EmblaOptionsType
+export type CarouselPlugin = EmblaPluginType
+export type CarouselApi = EmblaCarouselType
+export type CarouselViewportRef = EmblaViewportRefType
 
 export interface UseCarouselProps {
   opts?: CarouselOptions
-  plugins?: CarouselPlugin
+  plugins?: CarouselPlugin[]
   orientation?: "horizontal" | "vertical"
   setApi?: (api: CarouselApi) => void
 }
@@ -22,6 +24,7 @@ export function useCarousel({
   setApi,
   plugins,
 }: UseCarouselProps) {
+  // carouselRef è un callback ref (EmblaViewportRefType)
   const [carouselRef, api] = useEmblaCarousel(
     {
       ...opts,
@@ -29,14 +32,14 @@ export function useCarousel({
     },
     plugins
   )
+
   const [canScrollPrev, setCanScrollPrev] = React.useState(false)
   const [canScrollNext, setCanScrollNext] = React.useState(false)
 
-  const onSelect = React.useCallback((api: CarouselApi) => {
-    if (!api) return
-
-    setCanScrollPrev(api.canScrollPrev())
-    setCanScrollNext(api.canScrollNext())
+  const onSelect = React.useCallback((emblaApi: CarouselApi) => {
+    if (!emblaApi) return
+    setCanScrollPrev(emblaApi.canScrollPrev())
+    setCanScrollNext(emblaApi.canScrollNext())
   }, [])
 
   const scrollPrev = React.useCallback(() => {
@@ -67,13 +70,11 @@ export function useCarousel({
 
   React.useEffect(() => {
     if (!api) return
-
     onSelect(api)
     api.on("reInit", onSelect)
     api.on("select", onSelect)
-
     return () => {
-      api?.off("select", onSelect)
+      api.off("select", onSelect)
     }
   }, [api, onSelect])
 
