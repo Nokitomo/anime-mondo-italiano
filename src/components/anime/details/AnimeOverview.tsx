@@ -34,7 +34,7 @@ export function AnimeOverview({
 }: AnimeOverviewProps) {
   const hasRelations = relations.length > 0;
 
-  // Ordine desiderato, con ALTERNATIVE_VERSION prima di SPIN_OFF
+  // Ordine desiderato delle relazioni
   const relationOrder = [
     "PREQUEL",
     "SEQUEL",
@@ -42,10 +42,11 @@ export function AnimeOverview({
     "SIDE_STORY",
     "CHARACTER",
     "SUMMARY",
-    "ALTERNATIVE_VERSION", // ora qui
+    "ALTERNATIVE_VERSION", // versione alternativa
     "SPIN_OFF",
     "OTHER",
   ];
+
   const sortedRelations = [...relations].sort((a, b) => {
     const ia = relationOrder.indexOf(a.type);
     const ib = relationOrder.indexOf(b.type);
@@ -56,13 +57,11 @@ export function AnimeOverview({
 
   return (
     <div className="space-y-8">
-      {/* Sinossi */}
       <section className="prose prose-lg dark:prose-invert max-w-none">
         <h2 className="text-xl font-semibold mb-4">Sinossi</h2>
         <p className="whitespace-pre-line">{description}</p>
       </section>
 
-      {/* Informazioni */}
       <section>
         <h2 className="text-xl font-semibold mb-4">Informazioni</h2>
         <dl className="grid grid-cols-1 md:grid-cols-2 gap-y-2">
@@ -109,7 +108,6 @@ export function AnimeOverview({
         </dl>
       </section>
 
-      {/* Anime Correlati */}
       {hasRelations && (
         <section>
           <h2 className="text-xl font-semibold mb-4">Anime Correlati</h2>
@@ -146,7 +144,6 @@ export function AnimeOverview({
         </section>
       )}
 
-      {/* Anime Consigliati */}
       {recommendations.length > 0 && (
         <section>
           <h2 className="text-xl font-semibold mb-4">Anime Consigliati</h2>
