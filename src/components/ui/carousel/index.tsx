@@ -2,12 +2,11 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 import { useCarousel } from "@/hooks/use-carousel"
+import type { UseCarouselProps, CarouselApi } from "@/hooks/use-carousel"
 import { CarouselContext } from "./carousel-context"
 import { CarouselContent } from "./carousel-content"
 import { CarouselItem } from "./carousel-item"
 import { CarouselNext, CarouselPrevious } from "./carousel-navigation"
-
-import type { UseCarouselProps, CarouselApi } from "@/hooks/use-carousel"
 
 const Carousel = React.forwardRef<
   HTMLDivElement,
@@ -34,12 +33,7 @@ const Carousel = React.forwardRef<
       canScrollPrev,
       canScrollNext,
       handleKeyDown,
-    } = useCarousel({
-      opts,
-      orientation,
-      setApi,
-      plugins,
-    })
+    } = useCarousel({ opts, orientation, setApi, plugins })
 
     return (
       <CarouselContext.Provider
@@ -55,6 +49,7 @@ const Carousel = React.forwardRef<
       >
         <div
           ref={ref}
+          tabIndex={0}
           onKeyDownCapture={handleKeyDown}
           className={cn("relative", className)}
           role="region"
