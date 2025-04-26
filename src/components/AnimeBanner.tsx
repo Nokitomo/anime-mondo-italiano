@@ -1,18 +1,18 @@
 // src/components/AnimeBanner.tsx
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useToast } from "@/hooks/use-toast"
-import { AnimeMedia } from "@/types/anime"
+import type { AnimeMedia } from "@/types/anime"
 import {
   checkAnimeInUserList,
   AnimeListItem,
   removeAnimeFromList,
 } from "@/services/supabase-service"
-import { AnimeRemoveDialog } from "./anime/banner/AnimeRemoveDialog"
 import { formatLabels, statusLabels } from "@/types/anime"
 import { AddToListModal } from "./anime/AnimeAddToListModal"
 import { ProgressModal } from "./anime/AnimeProgressModal"
 import { ScoreModal } from "./anime/AnimeScoreModal"
+import { AnimeRemoveDialog } from "./anime/banner/AnimeRemoveDialog"
 
 interface AnimeBannerProps {
   anime: AnimeMedia
@@ -20,23 +20,22 @@ interface AnimeBannerProps {
 
 export function AnimeBanner({ anime }: AnimeBannerProps) {
   const [inUserList, setInUserList] = useState<AnimeListItem | null>(null)
-  const [showRemoveDialog, setShowRemoveDialog] = useState(false)
   const [showListModal, setShowListModal] = useState(false)
   const [showProgressModal, setShowProgressModal] = useState(false)
   const [showScoreModal, setShowScoreModal] = useState(false)
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false)
   const { toast } = useToast()
   const navigate = useNavigate()
 
   useEffect(() => {
-    async function load() {
+    async function loadListStatus() {
       if (!anime.id) return
-      const result = await checkAnimeInUserList(anime.id)
-      setInUserList(result)
+      const item = await checkAnimeInUserList(anime.id)
+      setInUserList(item)
     }
-    load()
+    loadListStatus()
   }, [anime.id])
 
-  // handler di rimozione (se necessario)
   const handleRemoveAnime = async () => {
     if (!inUserList) return
     await removeAnimeFromList(inUserList.id)
@@ -59,7 +58,6 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
       )}
       <div className="container relative z-10 py-6 px-4 sm:px-6 md:py-12">
         <div className="flex flex-col items-center text-center gap-4 md:flex-row md:items-start md:text-left">
-          {/* Cover */}
           <div className="w-24 sm:w-32 md:w-48 flex-shrink-0">
             <img
               src={anime.coverImage.large}
@@ -67,11 +65,11 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
               className="w-full rounded-md shadow-lg"
             />
           </div>
-
-          {/* Titolo + Metadati */}
           <div className="flex-1 space-y-2">
             <h1 className="text-xl font-bold">{anime.title.romaji}</h1>
-            <p className="text-sm uppercase">{anime.studios?.nodes.map(s=>s.name).join(", ")}</p>
+            <p className="text-sm uppercase">
+              {anime.studios?.nodes.map((s) => s.name).join(", ")}
+            </p>
             <div className="flex flex-wrap justify-center md:justify-start gap-3 text-xs">
               <div>
                 <dt className="font-medium">Tipo</dt>
@@ -88,16 +86,15 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
             </div>
           </div>
         </div>
-
-        {/* ========== BARRA AZIONI ========== */}
         <div className="mt-6 flex justify-center md:justify-start gap-4">
           <button
             className="px-4 py-2 bg-primary text-white rounded-md"
             onClick={() => setShowListModal(true)}
           >
-            {inUserList ? "Modifica lista" : "Aggiungi alla lista"}
+            {inUserList
+              ? statusLabels[inUserList.status]
+              : "Aggiungi alla lista"}
           </button>
-
           <button
             className="px-4 py-2 bg-secondary text-white rounded-md"
             onClick={() => setShowProgressModal(true)}
@@ -106,7 +103,6 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
               ? `${inUserList.progress} / ${anime.episodes ?? "?"} EP`
               : `— / ${anime.episodes ?? "?"} EP`}
           </button>
-
           <button
             className="px-4 py-2 bg-secondary text-white rounded-md"
             onClick={() => setShowScoreModal(true)}
@@ -118,7 +114,6 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
         </div>
       </div>
 
-      {/* ========== MODALI ========== */}
       <AddToListModal
         anime={anime}
         initial={inUserList}
@@ -132,8 +127,10 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
         initialProgress={inUserList?.progress ?? 0}
         open={showProgressModal}
         onClose={() => setShowProgressModal(false)}
-        onUpdate={(newProg) =>
-          setInUserList((prev) => prev && { ...prev, progress: newProg })
+        onUpdate={(newProgress) =>
+          setInUserList((prev) =>
+            prev ? { ...prev, progress: newProgress } : prev
+          )
         }
       />
 
@@ -143,11 +140,12 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
         open={showScoreModal}
         onClose={() => setShowScoreModal(false)}
         onUpdate={(newScore) =>
-          setInUserList((prev) => prev && { ...prev, score: newScore })
+          setInUserList((prev) =>
+            prev ? { ...prev, score: newScore } : prev
+          )
         }
       />
 
-      {/* vecchio dialog di conferma rimozione, se ti serve ancora */}
       <AnimeRemoveDialog
         showRemoveDialog={showRemoveDialog}
         setShowRemoveDialog={setShowRemoveDialog}
