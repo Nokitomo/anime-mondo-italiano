@@ -81,7 +81,7 @@ export function useCarousel({
     carouselRef,
     api,
     opts,
-    orientation: orientation || (opts && "axis" in opts && opts.axis === "y" ? "vertical" : "horizontal"),
+    orientation,
     scrollPrev,
     scrollNext,
     canScrollPrev,

@@ -84,10 +84,9 @@ export function AnimeOverview({ anime, description, relations, recommendations }
           <div className="relative">
             <Carousel
               opts={{
-                axis: "x",
-                align: "start",
-                slidesToScroll: 1
+                slidesToScroll: 1,
               }}
+              orientation="horizontal"
               className="w-full"
             >
               <CarouselContent className="-ml-2 md:-ml-4">
@@ -118,10 +117,9 @@ export function AnimeOverview({ anime, description, relations, recommendations }
           <div className="relative">
             <Carousel
               opts={{
-                axis: "x",
-                align: "start",
-                slidesToScroll: 1
+                slidesToScroll: 1,
               }}
+              orientation="horizontal"
               className="w-full"
             >
               <CarouselContent className="-ml-2 md:-ml-4">
