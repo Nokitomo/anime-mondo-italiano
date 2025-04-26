@@ -1,11 +1,12 @@
-
 import * as React from "react"
 import { cn } from "@/lib/utils"
+
 import { useCarousel } from "@/hooks/use-carousel"
 import { CarouselContext } from "./carousel-context"
 import { CarouselContent } from "./carousel-content"
 import { CarouselItem } from "./carousel-item"
 import { CarouselNext, CarouselPrevious } from "./carousel-navigation"
+
 import type { UseCarouselProps, CarouselApi } from "@/hooks/use-carousel"
 
 const Carousel = React.forwardRef<
@@ -66,6 +67,7 @@ const Carousel = React.forwardRef<
     )
   }
 )
+
 Carousel.displayName = "Carousel"
 
 export {
