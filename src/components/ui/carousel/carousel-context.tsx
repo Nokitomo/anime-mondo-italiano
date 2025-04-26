@@ -1,9 +1,9 @@
-
 import * as React from "react"
-import { type CarouselApi } from "@/hooks/use-carousel"
+import type { CarouselApi, CarouselViewportRef } from "@/hooks/use-carousel"
 
 interface CarouselContextProps {
-  carouselRef: React.RefObject<HTMLDivElement>
+  // callback ref fornito da Embla
+  carouselRef: CarouselViewportRef
   api: CarouselApi
   scrollPrev: () => void
   scrollNext: () => void
@@ -14,12 +14,10 @@ interface CarouselContextProps {
 
 export const CarouselContext = React.createContext<CarouselContextProps | null>(null)
 
-export function useCarouselContext() {
+export function useCarouselContext(): CarouselContextProps {
   const context = React.useContext(CarouselContext)
-
   if (!context) {
     throw new Error("useCarousel must be used within a <Carousel />")
   }
-
   return context
 }
