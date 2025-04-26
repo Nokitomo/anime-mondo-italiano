@@ -42,7 +42,7 @@ export function AnimeOverview({
     "SIDE_STORY",
     "CHARACTER",
     "SUMMARY",
-    "ALTERNATIVE_VERSION", // versione alternativa
+    "ALTERNATIVE",   // chiave corretta per "Versione alternativa"
     "SPIN_OFF",
     "OTHER",
   ];
