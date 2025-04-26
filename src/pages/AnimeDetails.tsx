@@ -1,21 +1,16 @@
+
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { translateText } from "@/services/translation-service";
 import { AnimeBanner } from "@/components/AnimeBanner";
-import { AnimeCard } from "@/components/AnimeCard";
-import { CharacterCard, StaffCard } from "@/components/CharacterCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAnimeDetails } from "@/services/anilist-api";
-import { AnimeMedia, relationLabels } from "@/types/anime";
+import { relationLabels } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { checkAnimeInUserList } from "@/services/supabase-service";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import { AnimeOverview } from "@/components/anime/details/AnimeOverview";
+import { AnimeCharacters } from "@/components/anime/details/AnimeCharacters";
+import { AnimeStaff } from "@/components/anime/details/AnimeStaff";
 
 const AnimeDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -92,8 +87,6 @@ const AnimeDetailsPage = () => {
   const characterEdges = anime.characters?.edges || [];
   const staff = anime.staff?.edges || [];
   
-  const hasRelations = relations.length > 0;
-  
   const formattedRelations = relations.map(rel => ({
     id: rel.node.id,
     title: rel.node.title,
@@ -127,168 +120,23 @@ const AnimeDetailsPage = () => {
           </TabsList>
           
           <TabsContent value="overview" className="mt-6">
-            <div className="space-y-8">
-              <section className="prose prose-lg dark:prose-invert max-w-none">
-                <h2 className="text-xl font-semibold mb-4">Sinossi</h2>
-                <p className="whitespace-pre-line">{description}</p>
-              </section>
-              
-              <section>
-                <h2 className="text-xl font-semibold mb-4">Informazioni</h2>
-                <dl className="grid grid-cols-1 md:grid-cols-2 gap-y-2">
-                  {anime.format && (
-                    <>
-                      <dt className="font-medium">Formato:</dt>
-                      <dd>{anime.format}</dd>
-                    </>
-                  )}
-                  {anime.episodes && (
-                    <>
-                      <dt className="font-medium">Episodi:</dt>
-                      <dd>{anime.episodes}</dd>
-                    </>
-                  )}
-                  {anime.chapters && (
-                    <>
-                      <dt className="font-medium">Capitoli:</dt>
-                      <dd>{anime.chapters}</dd>
-                    </>
-                  )}
-                  {anime.status && (
-                    <>
-                      <dt className="font-medium">Stato:</dt>
-                      <dd>{anime.status}</dd>
-                    </>
-                  )}
-                  {anime.startDate?.year && (
-                    <>
-                      <dt className="font-medium">Data di inizio:</dt>
-                      <dd>{`${anime.startDate.day || '??'}/${anime.startDate.month || '??'}/${anime.startDate.year}`}</dd>
-                    </>
-                  )}
-                  {anime.studios?.nodes?.length > 0 && (
-                    <>
-                      <dt className="font-medium">Studio:</dt>
-                      <dd>{anime.studios.nodes.map(studio => studio.name).join(", ")}</dd>
-                    </>
-                  )}
-                </dl>
-              </section>
-              
-              {hasRelations && (
-                <section>
-                  <h2 className="text-xl font-semibold mb-4">Anime Correlati</h2>
-                  <div className="relative">
-                    <Carousel
-                      opts={{
-                        align: "start",
-                        slidesToScroll: 1
-                      }}
-                      className="w-full"
-                    >
-                      <CarouselContent className="-ml-2 md:-ml-4">
-                        {formattedRelations.map((relation) => (
-                          <CarouselItem key={`${relation.id}-${relation.type}`} className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
-                            <div>
-                              <div className="mb-1 px-2 py-0.5 text-xs font-medium inline-flex bg-primary/10 text-primary rounded">
-                                {relation.label}
-                              </div>
-                              <AnimeCard
-                                anime={relation.node as AnimeMedia}
-                                showBadge={false}
-                              />
-                            </div>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      <CarouselPrevious className="-left-2 lg:-left-4" />
-                      <CarouselNext className="-right-2 lg:-right-4" />
-                    </Carousel>
-                  </div>
-                </section>
-              )}
-              
-              {recommendations.length > 0 && (
-                <section>
-                  <h2 className="text-xl font-semibold mb-4">Anime Consigliati</h2>
-                  <div className="relative">
-                    <Carousel
-                      opts={{
-                        align: "start",
-                        slidesToScroll: 1
-                      }}
-                      className="w-full"
-                    >
-                      <CarouselContent className="-ml-2 md:-ml-4">
-                        {recommendations.map((rec) => (
-                          <CarouselItem key={rec.id} className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
-                            <AnimeCard
-                              anime={rec as AnimeMedia}
-                              showBadge={false}
-                            />
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      <CarouselPrevious className="-left-2 lg:-left-4" />
-                      <CarouselNext className="-right-2 lg:-right-4" />
-                    </Carousel>
-                  </div>
-                </section>
-              )}
-            </div>
+            <AnimeOverview
+              anime={anime}
+              description={description}
+              relations={formattedRelations}
+              recommendations={recommendations}
+            />
           </TabsContent>
           
           <TabsContent value="characters" className="mt-6">
-            {characters.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {characters.map((character, index) => {
-                  const edge = characterEdges[index];
-                  const voiceActor = edge?.voiceActors?.[0];
-                  
-                  return (
-                    <CharacterCard
-                      key={character.id}
-                      id={character.id}
-                      name={character.name.full}
-                      nativeName={character.name.native}
-                      image={character.image.medium}
-                      role={edge?.role || "Personaggio"}
-                      voiceActor={voiceActor ? {
-                        id: voiceActor.id,
-                        name: voiceActor.name.full,
-                        nativeName: voiceActor.name.native,
-                        image: voiceActor.image.medium,
-                      } : undefined}
-                    />
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground py-12">
-                Nessun personaggio disponibile per questo anime.
-              </div>
-            )}
+            <AnimeCharacters
+              characters={characters}
+              characterEdges={characterEdges}
+            />
           </TabsContent>
           
           <TabsContent value="staff" className="mt-6">
-            {staff.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {staff.map((staffEdge) => (
-                  <StaffCard
-                    key={`${staffEdge.node.id}-${staffEdge.role}`}
-                    id={staffEdge.node.id}
-                    name={staffEdge.node.name.full}
-                    nativeName={staffEdge.node.name.native}
-                    image={staffEdge.node.image.medium}
-                    role={staffEdge.role}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground py-12">
-                Nessun membro dello staff disponibile per questo anime.
-              </div>
-            )}
+            <AnimeStaff staff={staff} />
           </TabsContent>
         </Tabs>
       </div>
