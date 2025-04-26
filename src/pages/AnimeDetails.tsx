@@ -5,7 +5,7 @@ import { translateText } from "@/services/translation-service";
 import { AnimeBanner } from "@/components/AnimeBanner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAnimeDetails } from "@/services/anilist-api";
-import { relationLabels } from "@/types/anime";
+import { relationLabels, AnimeMedia } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { checkAnimeInUserList } from "@/services/supabase-service";
 import { AnimeOverview } from "@/components/anime/details/AnimeOverview";
@@ -87,12 +87,13 @@ const AnimeDetailsPage = () => {
   const characterEdges = anime.characters?.edges || [];
   const staff = anime.staff?.edges || [];
   
+  // Create properly formatted relation items with full AnimeMedia objects
   const formattedRelations = relations.map(rel => ({
     id: rel.node.id,
     title: rel.node.title,
     coverImage: rel.node.coverImage,
     type: rel.relationType,
-    node: rel.node,
+    node: rel.node as AnimeMedia, // Cast to AnimeMedia
     label: relationLabels[rel.relationType] || rel.relationType
   }));
   
@@ -124,7 +125,7 @@ const AnimeDetailsPage = () => {
               anime={anime}
               description={description}
               relations={formattedRelations}
-              recommendations={recommendations}
+              recommendations={recommendations as AnimeMedia[]}
             />
           </TabsContent>
           

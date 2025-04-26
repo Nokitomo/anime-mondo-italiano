@@ -1,3 +1,4 @@
+
 import { AnimeMedia } from "@/types/anime";
 import {
   Carousel,
@@ -9,17 +10,19 @@ import {
 import { AnimeCard } from "@/components/AnimeCard";
 import { relationLabels } from "@/types/anime";
 
+interface RelationItem {
+  id: number;
+  title: AnimeMedia["title"];
+  coverImage: AnimeMedia["coverImage"];
+  type: string;
+  node: AnimeMedia;
+  label: string;
+}
+
 interface AnimeOverviewProps {
   anime: AnimeMedia;
   description: string;
-  relations: {
-    id: number;
-    title: AnimeMedia["title"];
-    coverImage: AnimeMedia["coverImage"];
-    type: string;
-    node: AnimeMedia;
-    label: string;
-  }[];
+  relations: RelationItem[];
   recommendations: AnimeMedia[];
 }
 

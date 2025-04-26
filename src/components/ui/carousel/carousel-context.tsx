@@ -3,7 +3,7 @@ import * as React from "react"
 import { type CarouselApi } from "@/hooks/use-carousel"
 
 interface CarouselContextProps {
-  carouselRef: React.RefObject<HTMLDivElement>
+  carouselRef: React.RefObject<HTMLDivElement> | React.MutableRefObject<HTMLDivElement | null>
   api: CarouselApi
   scrollPrev: () => void
   scrollNext: () => void

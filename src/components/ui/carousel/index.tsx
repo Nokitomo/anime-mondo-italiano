@@ -6,7 +6,7 @@ import { CarouselContext } from "./carousel-context"
 import { CarouselContent } from "./carousel-content"
 import { CarouselItem } from "./carousel-item"
 import { CarouselNext, CarouselPrevious } from "./carousel-navigation"
-import type { UseCarouselProps } from "@/hooks/use-carousel"
+import type { UseCarouselProps, CarouselApi } from "@/hooks/use-carousel"
 
 const Carousel = React.forwardRef<
   HTMLDivElement,
