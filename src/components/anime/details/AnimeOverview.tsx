@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/carousel";
 import { AnimeCard } from "@/components/AnimeCard";
 import { relationLabels } from "@/types/anime";
+import { Link } from "react-router-dom";
 
 interface RelationItem {
   id: number;
@@ -33,7 +34,7 @@ export function AnimeOverview({
 }: AnimeOverviewProps) {
   const hasRelations = relations.length > 0;
 
-  // Ordine desiderato dei tipi di relazione
+  // Ordine desiderato, con ALTERNATIVE_VERSION prima di SPIN_OFF
   const relationOrder = [
     "PREQUEL",
     "SEQUEL",
@@ -41,12 +42,10 @@ export function AnimeOverview({
     "SIDE_STORY",
     "CHARACTER",
     "SUMMARY",
-    "ALTERNATIVE_VERSION",
+    "ALTERNATIVE_VERSION", // ora qui
     "SPIN_OFF",
     "OTHER",
   ];
-
-  // Sorting in base a relationOrder
   const sortedRelations = [...relations].sort((a, b) => {
     const ia = relationOrder.indexOf(a.type);
     const ib = relationOrder.indexOf(b.type);
@@ -57,11 +56,13 @@ export function AnimeOverview({
 
   return (
     <div className="space-y-8">
+      {/* Sinossi */}
       <section className="prose prose-lg dark:prose-invert max-w-none">
         <h2 className="text-xl font-semibold mb-4">Sinossi</h2>
         <p className="whitespace-pre-line">{description}</p>
       </section>
 
+      {/* Informazioni */}
       <section>
         <h2 className="text-xl font-semibold mb-4">Informazioni</h2>
         <dl className="grid grid-cols-1 md:grid-cols-2 gap-y-2">
@@ -108,6 +109,7 @@ export function AnimeOverview({
         </dl>
       </section>
 
+      {/* Anime Correlati */}
       {hasRelations && (
         <section>
           <h2 className="text-xl font-semibold mb-4">Anime Correlati</h2>
@@ -126,12 +128,14 @@ export function AnimeOverview({
                     key={`${relation.id}-${relation.type}`}
                     className="pl-2 md:pl-4 w-1/3"
                   >
-                    <div>
-                      <div className="mb-1 px-2 py-0.5 text-xs font-medium inline-flex bg-primary/10 text-primary rounded">
-                        {relation.label}
+                    <Link to={`/anime/${relation.node.id}`}>
+                      <div>
+                        <div className="mb-1 px-2 py-0.5 text-xs font-medium inline-flex bg-primary/10 text-primary rounded">
+                          {relation.label}
+                        </div>
+                        <AnimeCard anime={relation.node} showBadge={false} />
                       </div>
-                      <AnimeCard anime={relation.node} showBadge={false} />
-                    </div>
+                    </Link>
                   </CarouselItem>
                 ))}
               </CarouselContent>
@@ -142,18 +146,28 @@ export function AnimeOverview({
         </section>
       )}
 
+      {/* Anime Consigliati */}
       {recommendations.length > 0 && (
         <section>
           <h2 className="text-xl font-semibold mb-4">Anime Consigliati</h2>
           <div className="relative">
-            <Carousel className="w-full">
+            <Carousel
+              className="w-full"
+              opts={{
+                dragFree: true,
+                align: "start",
+                containScroll: "trimSnaps",
+              }}
+            >
               <CarouselContent className="-ml-2 md:-ml-4">
                 {recommendations.map((rec) => (
                   <CarouselItem
                     key={rec.id}
                     className="pl-2 md:pl-4 w-1/3"
                   >
-                    <AnimeCard anime={rec} showBadge={false} />
+                    <Link to={`/anime/${rec.id}`}>
+                      <AnimeCard anime={rec} showBadge={false} />
+                    </Link>
                   </CarouselItem>
                 ))}
               </CarouselContent>
