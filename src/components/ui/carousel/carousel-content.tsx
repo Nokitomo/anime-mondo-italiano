@@ -1,28 +1,23 @@
-
 import * as React from "react"
-import { cn } from "@/lib/utils"
-import { useCarouselContext } from "./carousel-context"
+import type { CarouselApi, CarouselViewportRef } from "@/hooks/use-carousel"
 
-const CarouselContent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
-  const { carouselRef, orientation } = useCarouselContext()
+interface CarouselContextProps {
+  // callback ref fornito da Embla
+  carouselRef: CarouselViewportRef
+  api: CarouselApi
+  scrollPrev: () => void
+  scrollNext: () => void
+  canScrollPrev: boolean
+  canScrollNext: boolean
+  orientation?: "horizontal" | "vertical"
+}
 
-  return (
-    <div ref={carouselRef} className="overflow-hidden">
-      <div
-        ref={ref}
-        className={cn(
-          "flex",
-          orientation === "horizontal" ? "-ml-4" : "-mt-4 flex-col",
-          className
-        )}
-        {...props}
-      />
-    </div>
-  )
-})
-CarouselContent.displayName = "CarouselContent"
+export const CarouselContext = React.createContext<CarouselContextProps | null>(null)
 
-export { CarouselContent }
+export function useCarouselContext(): CarouselContextProps {
+  const context = React.useContext(CarouselContext)
+  if (!context) {
+    throw new Error("useCarousel must be used within a <Carousel />")
+  }
+  return context
+}
