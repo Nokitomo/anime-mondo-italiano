@@ -1,6 +1,12 @@
 // src/components/anime/AnimeAddToListModal.tsx
 import * as React from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import type { AnimeMedia } from "@/types/anime"
@@ -35,13 +41,6 @@ export function AddToListModal({
     initial?.status ?? "IN_CORSO"
   )
   const [loading, setLoading] = React.useState(false)
-
-  // All'apertura del modal riallinea il radio al valore corrente
-  React.useEffect(() => {
-    if (open) {
-      setStatus(initial?.status ?? "IN_CORSO")
-    }
-  }, [open, initial])
 
   const handleSubmit = async () => {
     setLoading(true)
@@ -88,7 +87,8 @@ export function AddToListModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      {/* Key che forza il remount quando open o initial.status cambiano */}
+      <DialogContent key={`${open}-${initial?.status}`}>
         <DialogHeader>
           <DialogTitle>
             {initial ? "Modifica stato nell'elenco" : "Aggiungi alla lista"}
