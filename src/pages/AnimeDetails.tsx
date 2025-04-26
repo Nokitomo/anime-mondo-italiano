@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef } from "react";
+
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { translateText } from "@/services/translation-service";
 import { AnimeBanner } from "@/components/AnimeBanner";
@@ -11,7 +12,14 @@ import { useQuery } from "@tanstack/react-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { checkAnimeInUserList } from "@/services/supabase-service";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 const AnimeDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -175,21 +183,25 @@ const AnimeDetailsPage = () => {
                 <section>
                   <h2 className="text-xl font-semibold mb-4">Anime Correlati</h2>
                   <div className="relative">
-                    <ScrollArea className="w-full whitespace-nowrap">
-                      <div className="flex gap-4 pb-4">
+                    <Carousel className="w-full">
+                      <CarouselContent>
                         {formattedRelations.map((relation) => (
-                          <div key={`${relation.id}-${relation.type}`} className="w-[180px] shrink-0">
-                            <div className="mb-1 px-2 py-0.5 text-xs font-medium inline-flex bg-primary/10 text-primary rounded">
-                              {relation.label}
+                          <CarouselItem key={`${relation.id}-${relation.type}`} className="md:basis-1/4 lg:basis-1/5">
+                            <div>
+                              <div className="mb-1 px-2 py-0.5 text-xs font-medium inline-flex bg-primary/10 text-primary rounded">
+                                {relation.label}
+                              </div>
+                              <AnimeCard
+                                anime={relation.node as AnimeMedia}
+                                showBadge={false}
+                              />
                             </div>
-                            <AnimeCard
-                              anime={relation.node as AnimeMedia}
-                              showBadge={false}
-                            />
-                          </div>
+                          </CarouselItem>
                         ))}
-                      </div>
-                    </ScrollArea>
+                      </CarouselContent>
+                      <CarouselPrevious className="-left-2 lg:-left-4" />
+                      <CarouselNext className="-right-2 lg:-right-4" />
+                    </Carousel>
                   </div>
                 </section>
               )}
@@ -198,18 +210,20 @@ const AnimeDetailsPage = () => {
                 <section>
                   <h2 className="text-xl font-semibold mb-4">Anime Consigliati</h2>
                   <div className="relative">
-                    <ScrollArea className="w-full whitespace-nowrap">
-                      <div className="flex gap-4 pb-4">
+                    <Carousel className="w-full">
+                      <CarouselContent>
                         {recommendations.map((rec) => (
-                          <div key={rec.id} className="w-[180px] shrink-0">
+                          <CarouselItem key={rec.id} className="md:basis-1/4 lg:basis-1/5">
                             <AnimeCard
                               anime={rec as AnimeMedia}
                               showBadge={false}
                             />
-                          </div>
+                          </CarouselItem>
                         ))}
-                      </div>
-                    </ScrollArea>
+                      </CarouselContent>
+                      <CarouselPrevious className="-left-2 lg:-left-4" />
+                      <CarouselNext className="-right-2 lg:-right-4" />
+                    </Carousel>
                   </div>
                 </section>
               )}
