@@ -21,12 +21,14 @@ interface AddToListModalProps {
   onUpdate: (item: AnimeListItem | null) => void
 }
 
+// Ho aggiornato la prima opzione da "In corso" a "In visione",
+// per allinearla a statusLabels["IN_CORSO"] che usi in AnimeBanner.
 const statusOptions: { label: string; value: AnimeListItem["status"] }[] = [
-  { label: "In corso",    value: "IN_CORSO"   },
-  { label: "Completato",  value: "COMPLETATO" },
-  { label: "In pausa",    value: "IN_PAUSA"   },
-  { label: "Abbandonato", value: "ABBANDONATO"},
-  { label: "Pianificato", value: "PIANIFICATO"},
+  { label: "In visione", value: "IN_CORSO" },
+  { label: "Completato", value: "COMPLETATO" },
+  { label: "In pausa", value: "IN_PAUSA" },
+  { label: "Abbandonato", value: "ABBANDONATO" },
+  { label: "Pianificato", value: "PIANIFICATO" },
 ]
 
 export function AddToListModal({
@@ -37,6 +39,7 @@ export function AddToListModal({
   onUpdate,
 }: AddToListModalProps) {
   const { toast } = useToast()
+  // Inizializziamo sempre al valore effettivo di `initial.status`
   const [status, setStatus] = React.useState<AnimeListItem["status"]>(
     initial?.status ?? "IN_CORSO"
   )
@@ -87,8 +90,8 @@ export function AddToListModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      {/* Key che forza il remount quando open o initial.status cambiano */}
-      <DialogContent key={`${open}-${initial?.status}`}>
+      {/* Uso una key basata su initial.status per reinizializzare il radio */}
+      <DialogContent key={initial?.status}>
         <DialogHeader>
           <DialogTitle>
             {initial ? "Modifica stato nell'elenco" : "Aggiungi alla lista"}
