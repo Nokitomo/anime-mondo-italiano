@@ -7,7 +7,7 @@ import useEmblaCarousel, {
 export type CarouselApi = UseEmblaCarouselType[1]
 export type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
 export type CarouselOptions = UseEmblaCarouselType[0]
-export type CarouselPlugin = NonNullable<UseEmblaCarouselType[2]>
+export type CarouselPlugin = NonNullable<Parameters<typeof useEmblaCarousel>[1]>
 
 export interface UseCarouselProps {
   opts?: CarouselOptions
@@ -81,7 +81,7 @@ export function useCarousel({
     carouselRef,
     api,
     opts,
-    orientation: orientation || (opts?.axis === "y" ? "vertical" : "horizontal"),
+    orientation: orientation || (opts && "axis" in opts && opts.axis === "y" ? "vertical" : "horizontal"),
     scrollPrev,
     scrollNext,
     canScrollPrev,

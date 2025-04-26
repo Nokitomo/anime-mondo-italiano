@@ -84,6 +84,7 @@ export function AnimeOverview({ anime, description, relations, recommendations }
           <div className="relative">
             <Carousel
               opts={{
+                axis: "x",
                 align: "start",
                 slidesToScroll: 1
               }}
@@ -117,6 +118,7 @@ export function AnimeOverview({ anime, description, relations, recommendations }
           <div className="relative">
             <Carousel
               opts={{
+                axis: "x",
                 align: "start",
                 slidesToScroll: 1
               }}
