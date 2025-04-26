@@ -1,4 +1,3 @@
-
 import { AnimeMedia } from "@/types/anime";
 import {
   Carousel,
