@@ -1,10 +1,9 @@
 
 import * as React from "react"
 import { type CarouselApi } from "@/hooks/use-carousel"
-import type { UseEmblaCarouselType } from "embla-carousel-react"
 
 interface CarouselContextProps {
-  carouselRef: ReturnType<UseEmblaCarouselType[0]>
+  carouselRef: React.RefObject<HTMLDivElement>
   api: CarouselApi
   scrollPrev: () => void
   scrollNext: () => void

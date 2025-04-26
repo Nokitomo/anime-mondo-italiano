@@ -82,11 +82,7 @@ export function AnimeOverview({ anime, description, relations, recommendations }
         <section>
           <h2 className="text-xl font-semibold mb-4">Anime Correlati</h2>
           <div className="relative">
-            <Carousel
-              opts={{}}
-              orientation="horizontal"
-              className="w-full"
-            >
+            <Carousel className="w-full">
               <CarouselContent className="-ml-2 md:-ml-4">
                 {relations.map((relation) => (
                   <CarouselItem key={`${relation.id}-${relation.type}`} className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
@@ -113,11 +109,7 @@ export function AnimeOverview({ anime, description, relations, recommendations }
         <section>
           <h2 className="text-xl font-semibold mb-4">Anime Consigliati</h2>
           <div className="relative">
-            <Carousel
-              opts={{}}
-              orientation="horizontal"
-              className="w-full"
-            >
+            <Carousel className="w-full">
               <CarouselContent className="-ml-2 md:-ml-4">
                 {recommendations.map((rec) => (
                   <CarouselItem key={rec.id} className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
