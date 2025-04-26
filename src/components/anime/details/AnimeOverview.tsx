@@ -33,6 +33,28 @@ export function AnimeOverview({
 }: AnimeOverviewProps) {
   const hasRelations = relations.length > 0;
 
+  // Ordine desiderato dei tipi di relazione
+  const relationOrder = [
+    "PREQUEL",
+    "SEQUEL",
+    "ADAPTATION",
+    "SIDE_STORY",
+    "CHARACTER",
+    "SUMMARY",
+    "ALTERNATIVE_VERSION",
+    "SPIN_OFF",
+    "OTHER",
+  ];
+
+  // Sorting in base a relationOrder
+  const sortedRelations = [...relations].sort((a, b) => {
+    const ia = relationOrder.indexOf(a.type);
+    const ib = relationOrder.indexOf(b.type);
+    const aIndex = ia === -1 ? relationOrder.length : ia;
+    const bIndex = ib === -1 ? relationOrder.length : ib;
+    return aIndex - bIndex;
+  });
+
   return (
     <div className="space-y-8">
       <section className="prose prose-lg dark:prose-invert max-w-none">
@@ -90,9 +112,16 @@ export function AnimeOverview({
         <section>
           <h2 className="text-xl font-semibold mb-4">Anime Correlati</h2>
           <div className="relative">
-            <Carousel className="w-full">
+            <Carousel
+              className="w-full"
+              opts={{
+                dragFree: true,
+                align: "start",
+                containScroll: "trimSnaps",
+              }}
+            >
               <CarouselContent className="-ml-2 md:-ml-4">
-                {relations.map((relation) => (
+                {sortedRelations.map((relation) => (
                   <CarouselItem
                     key={`${relation.id}-${relation.type}`}
                     className="pl-2 md:pl-4 w-1/3"
