@@ -83,9 +83,7 @@ export function AnimeOverview({ anime, description, relations, recommendations }
           <h2 className="text-xl font-semibold mb-4">Anime Correlati</h2>
           <div className="relative">
             <Carousel
-              opts={{
-                slidesToScroll: 1,
-              }}
+              opts={{}}
               orientation="horizontal"
               className="w-full"
             >
@@ -116,9 +114,7 @@ export function AnimeOverview({ anime, description, relations, recommendations }
           <h2 className="text-xl font-semibold mb-4">Anime Consigliati</h2>
           <div className="relative">
             <Carousel
-              opts={{
-                slidesToScroll: 1,
-              }}
+              opts={{}}
               orientation="horizontal"
               className="w-full"
             >

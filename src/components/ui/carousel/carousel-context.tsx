@@ -4,7 +4,7 @@ import { type CarouselApi } from "@/hooks/use-carousel"
 import type { UseEmblaCarouselType } from "embla-carousel-react"
 
 interface CarouselContextProps {
-  carouselRef: React.MutableRefObject<HTMLDivElement | null>
+  carouselRef: ReturnType<UseEmblaCarouselType[0]>
   api: CarouselApi
   scrollPrev: () => void
   scrollNext: () => void

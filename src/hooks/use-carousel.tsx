@@ -7,7 +7,7 @@ import useEmblaCarousel, {
 export type CarouselApi = UseEmblaCarouselType[1]
 export type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
 export type CarouselOptions = UseEmblaCarouselType[0]
-export type CarouselPlugin = NonNullable<Parameters<typeof useEmblaCarousel>[1]>
+export type CarouselPlugin = NonNullable<UseCarouselParameters[1]>
 
 export interface UseCarouselProps {
   opts?: CarouselOptions
