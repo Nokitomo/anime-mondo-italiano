@@ -95,16 +95,13 @@ export function AnimeOverview({
                 {relations.map((relation) => (
                   <CarouselItem
                     key={`${relation.id}-${relation.type}`}
-                    className="pl-2 md:pl-4 w-1/5"
+                    className="pl-2 md:pl-4 w-1/3"
                   >
                     <div>
                       <div className="mb-1 px-2 py-0.5 text-xs font-medium inline-flex bg-primary/10 text-primary rounded">
                         {relation.label}
                       </div>
-                      <AnimeCard
-                        anime={relation.node}
-                        showBadge={false}
-                      />
+                      <AnimeCard anime={relation.node} showBadge={false} />
                     </div>
                   </CarouselItem>
                 ))}
@@ -125,7 +122,7 @@ export function AnimeOverview({
                 {recommendations.map((rec) => (
                   <CarouselItem
                     key={rec.id}
-                    className="pl-2 md:pl-4 w-1/5"
+                    className="pl-2 md:pl-4 w-1/3"
                   >
                     <AnimeCard anime={rec} showBadge={false} />
                   </CarouselItem>
