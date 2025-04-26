@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { useCarouselContext } from "./carousel-context"
@@ -15,7 +14,9 @@ const CarouselItem = React.forwardRef<
       role="group"
       aria-roledescription="slide"
       className={cn(
-        "min-w-0 shrink-0 grow-0 basis-full",
+        // width fissa al 20% del contenitore, per mostrarne 5 in viewport
+        "min-w-0 shrink-0 grow-0 w-1/5",
+        // padding laterale o verticale a seconda dell'orientamento
         orientation === "horizontal" ? "pl-4" : "pt-4",
         className
       )}
@@ -23,6 +24,7 @@ const CarouselItem = React.forwardRef<
     />
   )
 })
+
 CarouselItem.displayName = "CarouselItem"
 
 export { CarouselItem }
