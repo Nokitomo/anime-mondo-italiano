@@ -2,6 +2,7 @@
 import * as React from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/hooks/use-toast"
 import type { AnimeMedia } from "@/types/anime"
 import type { AnimeListItem } from "@/services/supabase-service"
 import { addAnimeToList, updateAnimeInList } from "@/services/supabase-service"
@@ -15,11 +16,11 @@ interface AddToListModalProps {
 }
 
 const statusOptions: { label: string; value: AnimeListItem["status"] }[] = [
-  { label: "In corso",       value: "IN_CORSO"   },
-  { label: "Completato",     value: "COMPLETATO" },
-  { label: "In pausa",       value: "IN_PAUSA"   },
-  { label: "Abbandonato",    value: "ABBANDONATO"},
-  { label: "Pianificato",    value: "PIANIFICATO" },
+  { label: "In corso", value: "IN_CORSO" },
+  { label: "Completato", value: "COMPLETATO" },
+  { label: "In pausa", value: "IN_PAUSA" },
+  { label: "Abbandonato", value: "ABBANDONATO" },
+  { label: "Pianificato", value: "PIANIFICATO" },
 ]
 
 export function AddToListModal({
@@ -29,6 +30,7 @@ export function AddToListModal({
   onClose,
   onUpdate,
 }: AddToListModalProps) {
+  const { toast } = useToast()
   const [status, setStatus] = React.useState<AnimeListItem["status"]>(
     initial?.status ?? "IN_CORSO"
   )
@@ -37,16 +39,42 @@ export function AddToListModal({
   const handleSubmit = async () => {
     setLoading(true)
     try {
+      // Determina il nuovo progresso in base allo status selezionato
+      const newProgress =
+        status === "COMPLETATO"
+          ? anime.episodes ?? 0
+          : status === "PIANIFICATO"
+          ? 0
+          : initial?.progress ?? 0
+
+      let updatedRow: AnimeListItem
       if (initial) {
-        const data = await updateAnimeInList(initial.id, { status })
-        onUpdate(data[0] ?? null)
+        const [data] = await updateAnimeInList(initial.id, {
+          status,
+          progress: newProgress,
+        })
+        updatedRow = data
       } else {
-        const data = await addAnimeToList(anime.id, status, 0, 0, "")
-        onUpdate(data[0] ?? null)
+        const [data] = await addAnimeToList(
+          anime.id,
+          status,
+          newProgress,
+          initial?.score ?? 0,
+          ""
+        )
+        updatedRow = data
       }
+
+      onUpdate(updatedRow)
+      toast({ title: "Lista aggiornata", variant: "default" })
       onClose()
     } catch (error) {
       console.error("Errore AddToListModal:", error)
+      toast({
+        title: "Errore",
+        description: "Non è stato possibile salvare lo stato.",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
