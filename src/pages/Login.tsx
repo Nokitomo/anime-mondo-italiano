@@ -43,7 +43,7 @@ const LoginPage = () => {
       setIsLoading(false);
     }
   };
-  
+
   return (
     <div className="container flex items-center justify-center min-h-[80vh] py-12">
       <div className="w-full max-w-md space-y-8">

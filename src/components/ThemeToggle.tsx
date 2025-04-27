@@ -1,12 +1,11 @@
 
 import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
 import { Moon, Sun } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 export const ThemeToggle = () => {
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const { toast } = useToast();
   
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
@@ -25,10 +24,7 @@ export const ThemeToggle = () => {
     document.documentElement.classList.toggle("dark", newTheme === "dark");
     localStorage.setItem("theme", newTheme);
     
-    toast({
-      title: newTheme === "dark" ? "Modalità scura attivata" : "Modalità chiara attivata",
-      duration: 1500,
-    });
+    toast(newTheme === "dark" ? "Modalità scura attivata" : "Modalità chiara attivata");
   };
 
   return (

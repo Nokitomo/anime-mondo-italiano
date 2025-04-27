@@ -1,12 +1,20 @@
 
 import { toast as sonnerToast } from "sonner";
 
-// Export the toast function from sonner
-export const toast = sonnerToast;
+type ToastProps = {
+  description?: string;
+  variant?: "default" | "destructive";
+};
 
-// For backwards compatibility with existing code
+export function toast(title: string, props?: ToastProps) {
+  sonnerToast(title, {
+    description: props?.description,
+  });
+}
+
+// For compatibility
 export const useToast = () => {
   return {
-    toast: sonnerToast,
+    toast,
   };
 };
