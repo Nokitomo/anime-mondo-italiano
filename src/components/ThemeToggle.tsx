@@ -1,8 +1,8 @@
 
-import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { Moon, Sun } from "lucide-react";
 
 export const ThemeToggle = () => {
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -32,12 +32,14 @@ export const ThemeToggle = () => {
   };
 
   return (
-    <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Cambia tema">
-      {theme === "light" ? (
-        <Moon className="h-5 w-5" />
-      ) : (
-        <Sun className="h-5 w-5" />
-      )}
-    </Button>
+    <div className="flex items-center gap-2">
+      <Sun className="h-4 w-4 text-muted-foreground" />
+      <Switch 
+        checked={theme === "dark"}
+        onCheckedChange={toggleTheme}
+        aria-label="Cambia tema" 
+      />
+      <Moon className="h-4 w-4 text-muted-foreground" />
+    </div>
   );
 };
