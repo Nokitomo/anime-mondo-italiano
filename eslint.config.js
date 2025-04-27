@@ -2,37 +2,47 @@ import js from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
-import tseslint from "typescript-eslint";
+import tsParser from "@typescript-eslint/parser";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
 
-export default tseslint.config(
+export default [
+  // Configurazione base per JavaScript consigliata
+  ...js.configs.recommendedFlat,
+
+  // Configurazione aggiuntiva per TypeScript e React
   {
-    ignores: ["dist", "coverage", "coverage/**", "node_modules"]
-  },
-  {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    files: ["**/*.{ts,tsx}"],
+    ignores: ["dist/**", "coverage/**", "node_modules/**"],
     languageOptions: {
-      ecmaVersion: 2020,
+      parser: tsParser,
+      parserOptions: {
+        project: "./tsconfig.json",
+        ecmaVersion: 2020,
+        sourceType: "module"
+      },
       globals: globals.browser
     },
     plugins: {
+      "@typescript-eslint": tsPlugin,
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh
     },
     rules: {
-      "prefer-const": "off",
-      // React Hooks recommended rules
+      // Regole consigliate TypeScript
+      ...tsPlugin.configs.recommended.rules,
+      // Regole consigliate React Hooks
       ...reactHooks.configs.recommended.rules,
-      // Allow exporting constants alongside components
+      // Regole consigliate React Refresh
+      ...reactRefresh.configs.recommended.rules,
+      // Permetti export di costanti insieme ai componenti
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true }
       ],
-      // Turn off rules that conflict with project patterns
+      // Disattiva regole non rilevanti per il progetto
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-empty-object-type": "off",
+      "@typescript-eslint/no-empty-interface": "off",
       "@typescript-eslint/no-require-imports": "off"
     }
   }
-);
+];
