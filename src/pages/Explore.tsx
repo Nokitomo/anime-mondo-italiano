@@ -17,8 +17,8 @@ const Explore = () => {
     queryFn: () => getTrendingAnime(),
     staleTime: 5 * 60 * 1000,
     retry: 2,
-    onSettled: (data, error) => {
-      if (error) {
+    meta: {
+      onError: (error: Error) => {
         console.error("Errore nel caricamento degli anime:", error);
         toast({
           title: "Errore",
