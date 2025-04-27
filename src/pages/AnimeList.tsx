@@ -1,14 +1,15 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getUserAnimeList, AnimeListItem, updateAnimeInList, removeAnimeFromList } from "@/services/supabase-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { statusLabels, AnimeStatus } from "@/types/anime";
 import { toast } from "@/hooks/use-toast";
 import { AnimeListHeader } from "@/components/anime-list/AnimeListHeader";
 import { AnimeListContent } from "@/components/anime-list/AnimeListContent";
 import { AnimeListEmpty } from "@/components/anime-list/AnimeListEmpty";
+import { LoginPrompt } from "@/components/anime-list/LoginPrompt";
+import { useAnimeListSort } from "@/components/anime-list/useAnimeListSort";
 import { SortOption } from "@/components/anime-list/types";
 
 const sortOptions: SortOption[] = [
@@ -29,7 +30,7 @@ const AnimeList = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<AnimeStatus>("IN_CORSO");
   const [animeToDelete, setAnimeToDelete] = useState<AnimeListItem | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>(sortOptions[6]);
+  const { sortedAndFilteredList, sortBy, setSortBy } = useAnimeListSort(animeList, activeTab);
 
   useEffect(() => {
     const fetchUserAnimeList = async () => {
@@ -88,13 +89,10 @@ const AnimeList = () => {
     
     try {
       await removeAnimeFromList(animeToDelete.id);
-      
       setAnimeList(prevList => prevList.filter(item => item.id !== animeToDelete.id));
-      
       toast("Eliminato", {
         description: `Anime rimosso dalla lista.`
       });
-      
       setAnimeToDelete(null);
     } catch (err) {
       console.error("Errore nella rimozione dell'anime:", err);
@@ -105,44 +103,8 @@ const AnimeList = () => {
     }
   };
 
-  const sortedAndFilteredList = () => {
-    const filtered = animeList.filter(item => item.status === activeTab);
-    
-    return [...filtered].sort((a, b) => {
-      const fieldA = a[sortBy.field];
-      const fieldB = b[sortBy.field];
-      
-      if (typeof fieldA === 'string' && typeof fieldB === 'string') {
-        return sortBy.direction === 'asc' 
-          ? fieldA.localeCompare(fieldB) 
-          : fieldB.localeCompare(fieldA);
-      }
-      
-      if (typeof fieldA === 'number' && typeof fieldB === 'number') {
-        return sortBy.direction === 'asc' ? fieldA - fieldB : fieldB - fieldA;
-      }
-      
-      // Handle date strings
-      if (sortBy.field === 'updated_at' || sortBy.field === 'created_at') {
-        const dateA = new Date(String(fieldA)).getTime();
-        const dateB = new Date(String(fieldB)).getTime();
-        return sortBy.direction === 'asc' ? dateA - dateB : dateB - dateA;
-      }
-      
-      return 0;
-    });
-  };
-
   if (!user) {
-    return (
-      <div className="container py-8 text-center">
-        <h1 className="text-3xl font-bold mb-6">Le mie liste</h1>
-        <p className="text-lg mb-4">Accedi per visualizzare e gestire le tue liste anime.</p>
-        <Button asChild>
-          <Link to="/login">Accedi</Link>
-        </Button>
-      </div>
-    );
+    return <LoginPrompt />;
   }
 
   return (
@@ -176,12 +138,11 @@ const AnimeList = () => {
             ) : error ? (
               <div className="text-center py-12">
                 <p className="text-red-600 mb-4">{error}</p>
-                <Button variant="outline">Riprova</Button>
               </div>
-            ) : sortedAndFilteredList().length > 0 ? (
+            ) : sortedAndFilteredList.length > 0 ? (
               <AnimeListContent
-                items={sortedAndFilteredList()}
-                activeTab={activeTab as AnimeStatus}
+                items={sortedAndFilteredList}
+                activeTab={activeTab}
                 onDeleteClick={setAnimeToDelete}
                 onProgressUpdate={handleUpdateProgress}
                 animeToDelete={animeToDelete}
