@@ -1,7 +1,8 @@
+
 // src/components/AnimeBanner.tsx
 import React, { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "@/hooks/use-toast"
 import type { AnimeMedia } from "@/types/anime"
 import {
   checkAnimeInUserList,
@@ -24,7 +25,6 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
   const [showProgressModal, setShowProgressModal] = useState(false)
   const [showScoreModal, setShowScoreModal] = useState(false)
   const [showRemoveDialog, setShowRemoveDialog] = useState(false)
-  const { toast } = useToast()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
     if (!inUserList) return
     await removeAnimeFromList(inUserList.id)
     setInUserList(null)
-    toast({ title: "Anime rimosso dalla lista" })
+    toast("Anime rimosso dalla lista")
     setShowRemoveDialog(false)
   }
 

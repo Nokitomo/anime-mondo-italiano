@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AnimeListItem } from "@/services/supabase-service";
 import { AnimeMedia } from "@/types/anime";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { updateAnimeInList } from "@/services/supabase-service";
 
 interface ProgressControlsProps {
@@ -14,7 +14,6 @@ interface ProgressControlsProps {
 }
 
 export function ProgressControls({ anime, inUserList, onListUpdate }: ProgressControlsProps) {
-  const { toast } = useToast();
   const [editingProgress, setEditingProgress] = useState(false);
   const [progress, setProgress] = useState(inUserList.progress);
 
@@ -24,18 +23,16 @@ export function ProgressControls({ anime, inUserList, onListUpdate }: ProgressCo
         const result = await updateAnimeInList(inUserList.id, { progress: newProgress });
         if (result && result[0]) {
           onListUpdate(result[0]);
-          toast({
-            title: "Progresso aggiornato",
-            description: `Progresso aggiornato a ${newProgress} episodi`,
+          toast("Progresso aggiornato", {
+            description: `Progresso aggiornato a ${newProgress} episodi`
           });
         }
       }
     } catch (error) {
       console.error("Errore nell'aggiornamento del progresso:", error);
-      toast({
-        title: "Errore",
+      toast("Errore", {
         description: "Impossibile aggiornare il progresso",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };

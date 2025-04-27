@@ -1,3 +1,4 @@
+
 // src/components/anime/AnimeAddToListModal.tsx
 import * as React from "react"
 import {
@@ -8,7 +9,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "@/hooks/use-toast"
 import type { AnimeMedia } from "@/types/anime"
 import type { AnimeListItem } from "@/services/supabase-service"
 import { addAnimeToList, updateAnimeInList } from "@/services/supabase-service"
@@ -38,7 +39,6 @@ export function AddToListModal({
   onClose,
   onUpdate,
 }: AddToListModalProps) {
-  const { toast } = useToast()
   // Inizializziamo sempre al valore effettivo di `initial.status`
   const [status, setStatus] = React.useState<AnimeListItem["status"]>(
     initial?.status ?? "IN_CORSO"
@@ -74,12 +74,11 @@ export function AddToListModal({
       }
 
       onUpdate(updatedRow)
-      toast({ title: "Lista aggiornata", variant: "default" })
+      toast("Lista aggiornata")
       onClose()
     } catch (error) {
       console.error("Errore AddToListModal:", error)
-      toast({
-        title: "Errore",
+      toast("Errore", {
         description: "Non è stato possibile salvare lo stato.",
         variant: "destructive",
       })

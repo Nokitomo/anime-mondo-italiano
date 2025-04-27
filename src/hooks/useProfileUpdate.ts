@@ -1,13 +1,12 @@
 
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { ProfileService } from "@/services/profile-service";
 import { useAuth } from "@/hooks/useAuth";
 
 export const useProfileUpdate = () => {
   const { user, setUser } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
@@ -37,18 +36,16 @@ export const useProfileUpdate = () => {
 
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       
-      toast({
-        title: "Profilo aggiornato",
-        description: "Le modifiche sono state salvate con successo",
+      toast("Profilo aggiornato", {
+        description: "Le modifiche sono state salvate con successo"
       });
       
       return true;
     } catch (error: any) {
       console.error("Errore nell'aggiornamento del profilo:", error);
-      toast({
-        title: "Errore",
+      toast("Errore", {
         description: error.message || "Impossibile aggiornare il profilo",
-        variant: "destructive",
+        variant: "destructive"
       });
       return false;
     } finally {

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext } from "react";
 import { supabase } from "../integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -124,7 +125,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error("Errore nel login:", error.message);
         setError(error.message || "Credenziali non valide");
         toast("Errore", {
-          description: error.message || "Credenziali non valide",
+          description: error.message || "Credenziali non valide"
         });
         return false;
       }
@@ -135,7 +136,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       toast("Login effettuato", {
-        description: "Benvenuto in AnimeIT!",
+        description: "Benvenuto in AnimeIT!"
       });
       
       return true;
@@ -143,7 +144,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error("Eccezione durante il login:", error);
       setError(error.message || "Si è verificato un errore durante il login");
       toast("Errore", {
-        description: error.message || "Si è verificato un errore",
+        description: error.message || "Si è verificato un errore"
       });
       return false;
     } finally {
@@ -167,10 +168,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error("Errore nella verifica del nome utente:", checkError);
       } else if (existingUsers && existingUsers.length > 0) {
         setError("Nome utente già in uso.");
-        toast({
-          title: "Errore",
+        toast("Errore", {
           description: "Nome utente già in uso. Scegli un altro nome utente.",
-          variant: "destructive",
+          variant: "destructive"
         });
         return false;
       }
@@ -184,10 +184,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) {
         console.error("Errore nella registrazione:", error.message);
         setError(error.message || "Errore durante la registrazione");
-        toast({
-          title: "Errore",
+        toast("Errore", {
           description: error.message || "Impossibile completare la registrazione",
-          variant: "destructive",
+          variant: "destructive"
         });
         return false;
       }
@@ -211,27 +210,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Elimina l'utente se il profilo non è stato creato
         await supabase.auth.admin.deleteUser(data.user.id);
         
-        toast({
-          title: "Errore",
+        toast("Errore", {
           description: "Errore nella creazione del profilo",
-          variant: "destructive",
+          variant: "destructive"
         });
         return false;
       }
       
-      toast({
-        title: "Registrazione effettuata",
-        description: "Ti abbiamo inviato un'email di conferma. Conferma il tuo account per accedere.",
+      toast("Registrazione effettuata", {
+        description: "Ti abbiamo inviato un'email di conferma. Conferma il tuo account per accedere."
       });
       
       return true;
     } catch (error: any) {
       console.error("Eccezione durante la registrazione:", error);
       setError(error.message || "Si è verificato un errore durante la registrazione");
-      toast({
-        title: "Errore",
+      toast("Errore", {
         description: error.message || "Si è verificato un errore",
-        variant: "destructive",
+        variant: "destructive"
       });
       return false;
     } finally {
@@ -249,28 +245,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) {
         console.error("Errore nel logout:", error.message);
         setError(error.message || "Errore durante il logout");
-        toast({
-          title: "Errore",
+        toast("Errore", {
           description: error.message || "Impossibile effettuare il logout",
-          variant: "destructive",
+          variant: "destructive"
         });
         return false;
       }
       
       setUserState(null);
       
-      toast({
-        title: "Logout effettuato",
-        description: "Hai effettuato il logout con successo",
+      toast("Logout effettuato", {
+        description: "Hai effettuato il logout con successo"
       });
       return true;
     } catch (error: any) {
       console.error("Eccezione durante il logout:", error);
       setError(error.message || "Si è verificato un errore durante il logout");
-      toast({
-        title: "Errore",
+      toast("Errore", {
         description: error.message || "Si è verificato un errore",
-        variant: "destructive",
+        variant: "destructive"
       });
       return false;
     } finally {

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { addAnimeToList, checkAnimeInUserList, AnimeListItem } from "@/services/supabase-service";
 import { AnimeMedia, AnimeStatus, statusLabels } from "@/types/anime";
 import { PlusCircle } from "lucide-react";
@@ -34,7 +34,6 @@ interface AnimeAddToListProps {
 
 export const AnimeAddToList = ({ anime, inUserList, onListUpdate }: AnimeAddToListProps) => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [status, setStatus] = useState<AnimeStatus>(inUserList?.status || "IN_CORSO");
   const [progress, setProgress] = useState(inUserList?.progress.toString() || "0");
@@ -44,10 +43,9 @@ export const AnimeAddToList = ({ anime, inUserList, onListUpdate }: AnimeAddToLi
 
   const handleAddToList = async () => {
     if (!user) {
-      toast({
-        title: "Accesso richiesto",
+      toast("Accesso richiesto", {
         description: "Devi accedere per aggiungere anime alla tua lista.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -65,9 +63,8 @@ export const AnimeAddToList = ({ anime, inUserList, onListUpdate }: AnimeAddToLi
         anime.format
       );
       
-      toast({
-        title: inUserList ? "Aggiornato con successo" : "Aggiunto con successo",
-        description: `${anime.title.userPreferred || anime.title.romaji} è stato ${inUserList ? 'aggiornato nella' : 'aggiunto alla'} tua lista.`,
+      toast(inUserList ? "Aggiornato con successo" : "Aggiunto con successo", {
+        description: `${anime.title.userPreferred || anime.title.romaji} è stato ${inUserList ? 'aggiornato nella' : 'aggiunto alla'} tua lista.`
       });
       
       setIsDialogOpen(false);
@@ -82,16 +79,14 @@ export const AnimeAddToList = ({ anime, inUserList, onListUpdate }: AnimeAddToLi
 
       // Messaggio personalizzato per l'errore di tabella mancante
       if (error.message && error.message.includes("anime_list non esiste")) {
-        toast({
-          title: "Configurazione richiesta",
+        toast("Configurazione richiesta", {
           description: "La tabella anime_list non esiste nel tuo database Supabase. Controlla la console per maggiori informazioni.",
-          variant: "destructive",
+          variant: "destructive"
         });
       } else {
-        toast({
-          title: "Errore",
+        toast("Errore", {
           description: error.message || "Impossibile aggiungere l'anime alla lista.",
-          variant: "destructive",
+          variant: "destructive"
         });
       }
     } finally {

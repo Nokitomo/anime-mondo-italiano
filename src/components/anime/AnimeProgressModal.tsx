@@ -1,3 +1,4 @@
+
 // src/components/anime/AnimeProgressModal.tsx
 import * as React from "react"
 import {
@@ -8,7 +9,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "@/hooks/use-toast"
 import type { AnimeMedia } from "@/types/anime"
 import { checkAnimeInUserList, updateAnimeInList, addAnimeToList } from "@/services/supabase-service"
 
@@ -30,7 +31,6 @@ export function ProgressModal({
   const [progress, setProgress] = React.useState(initialProgress)
   const [loading, setLoading] = React.useState(false)
   const [itemId, setItemId] = React.useState<string | null>(null)
-  const { toast } = useToast()
 
   React.useEffect(() => {
     if (!open) return
@@ -71,12 +71,11 @@ export function ProgressModal({
         updatedRow = created
       }
       onUpdate(updatedRow.progress)
-      toast({ title: "Progresso salvato!", variant: "default" })
+      toast("Progresso salvato!")
       onClose()
     } catch (error: any) {
       console.error("Errore salvataggio progresso:", error)
-      toast({
-        title: "Errore",
+      toast("Errore", {
         description: "Non è stato possibile salvare il progresso.",
         variant: "destructive",
       })

@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { statusLabels, AnimeStatus } from "@/types/anime";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { AnimeListHeader } from "@/components/anime-list/AnimeListHeader";
 import { AnimeListContent } from "@/components/anime-list/AnimeListContent";
 import { AnimeListEmpty } from "@/components/anime-list/AnimeListEmpty";
@@ -29,7 +29,6 @@ const AnimeList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<AnimeStatus>("IN_CORSO");
-  const { toast } = useToast();
   const [animeToDelete, setAnimeToDelete] = useState<AnimeListItem | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>(sortOptions[6]);
 
@@ -47,10 +46,9 @@ const AnimeList = () => {
       } catch (err) {
         console.error("Errore nel recupero della lista anime:", err);
         setError("Si è verificato un errore nel caricamento della tua lista anime.");
-        toast({
-          title: "Errore",
+        toast("Errore", {
           description: "Impossibile caricare la tua lista anime.",
-          variant: "destructive",
+          variant: "destructive"
         });
       } finally {
         setLoading(false);
@@ -58,7 +56,7 @@ const AnimeList = () => {
     };
 
     fetchUserAnimeList();
-  }, [user, toast]);
+  }, [user]);
 
   const handleUpdateProgress = async (anime: AnimeListItem, increment: number) => {
     try {
@@ -74,16 +72,14 @@ const AnimeList = () => {
         )
       );
       
-      toast({
-        title: "Aggiornato",
-        description: `Progresso aggiornato a ${newProgress} episodi.`,
+      toast("Aggiornato", {
+        description: `Progresso aggiornato a ${newProgress} episodi.`
       });
     } catch (err) {
       console.error("Errore nell'aggiornamento del progresso:", err);
-      toast({
-        title: "Errore",
+      toast("Errore", {
         description: "Impossibile aggiornare il progresso.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
@@ -96,18 +92,16 @@ const AnimeList = () => {
       
       setAnimeList(prevList => prevList.filter(item => item.id !== animeToDelete.id));
       
-      toast({
-        title: "Eliminato",
-        description: `Anime rimosso dalla lista.`,
+      toast("Eliminato", {
+        description: `Anime rimosso dalla lista.`
       });
       
       setAnimeToDelete(null);
     } catch (err) {
       console.error("Errore nella rimozione dell'anime:", err);
-      toast({
-        title: "Errore",
+      toast("Errore", {
         description: "Impossibile rimuovere l'anime dalla lista.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };

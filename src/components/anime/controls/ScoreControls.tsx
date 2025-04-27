@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { AnimeListItem } from "@/services/supabase-service";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { updateAnimeInList } from "@/services/supabase-service";
 
 interface ScoreControlsProps {
@@ -10,24 +10,20 @@ interface ScoreControlsProps {
 }
 
 export function ScoreControls({ inUserList, onListUpdate }: ScoreControlsProps) {
-  const { toast } = useToast();
-
   const updateScore = async (newScore: number) => {
     try {
       const result = await updateAnimeInList(inUserList.id, { score: newScore });
       if (result && result[0]) {
         onListUpdate(result[0]);
-        toast({
-          title: "Voto aggiornato",
-          description: `Voto aggiornato a ${newScore}/10`,
+        toast("Voto aggiornato", {
+          description: `Voto aggiornato a ${newScore}/10`
         });
       }
     } catch (error) {
       console.error("Errore nell'aggiornamento del voto:", error);
-      toast({
-        title: "Errore",
+      toast("Errore", {
         description: "Impossibile aggiornare il voto",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };

@@ -1,4 +1,5 @@
-// Usa l’istanza unica di Supabase da src/integrations/supabase/client.ts
+
+// Usa l'istanza unica di Supabase da src/integrations/supabase/client.ts
 import { supabase } from "@/integrations/supabase/client";
 
 // Tipi di risposta per l'autenticazione
@@ -26,9 +27,9 @@ export type AnimeListItem = {
   user_id: string
   anime_id: number
   status: "IN_CORSO" | "COMPLETATO" | "IN_PAUSA" | "ABBANDONATO" | "PIANIFICATO"
-  progress?: number | null
-  score?: number | null
-  notes?: string | null
+  progress: number
+  score: number
+  notes: string
   title?: string | null
   cover_image?: string | null
   format?: string | null
@@ -69,46 +70,62 @@ export const getUserAnimeList = async (
 
 // Aggiunge un anime alla lista dell'utente
 export const addAnimeToList = async (
-  item: Omit<AnimeListItem, "id" | "created_at" | "updated_at">
-): Promise<AnimeListItem | null> => {
+  animeId: number,
+  status: AnimeListItem["status"],
+  progress: number,
+  score: number,
+  notes: string,
+  title?: string,
+  coverImage?: string,
+  format?: string
+): Promise<[AnimeListItem]> => {
   try {
     const user = await getCurrentUser()
     if (!user) throw new Error("Utente non autenticato")
 
     const { data, error } = await supabase
       .from("anime_list")
-      .insert({ ...item, user_id: user.id })
+      .insert({
+        user_id: user.id,
+        anime_id: animeId,
+        status,
+        progress,
+        score,
+        notes,
+        title,
+        cover_image: coverImage,
+        format,
+      })
       .select()
-      .single()
 
     if (error) throw error
-    return data as AnimeListItem
+    return data as [AnimeListItem]
   } catch (error) {
     console.error("Errore nell'aggiunta dell'anime alla lista:", error)
-    return null
+    throw error
   }
 }
 
 // Verifica se un anime esiste già nella lista dell'utente
 export const checkAnimeInUserList = async (
   animeId: number
-): Promise<boolean> => {
+): Promise<AnimeListItem | null> => {
   try {
     const user = await getCurrentUser()
     if (!user) throw new Error("Utente non autenticato")
 
     const { data: existing, error } = await supabase
       .from("anime_list")
-      .select("id")
+      .select("*")
       .eq("user_id", user.id)
       .eq("anime_id", animeId)
       .single()
 
     if (error && error.code !== "PGRST116") throw error
-    return !!existing
+    return existing as AnimeListItem | null
   } catch (error) {
     console.error("Errore nel controllo anime esistente:", error)
-    return false
+    return null
   }
 }
 
@@ -116,20 +133,19 @@ export const checkAnimeInUserList = async (
 export const updateAnimeInList = async (
   id: string,
   updates: Partial<Omit<AnimeListItem, "id" | "user_id" | "anime_id" | "created_at">>
-): Promise<AnimeListItem | null> => {
+): Promise<[AnimeListItem]> => {
   try {
     const { data, error } = await supabase
       .from("anime_list")
       .update(updates)
       .eq("id", id)
       .select()
-      .single()
 
     if (error) throw error
-    return data as AnimeListItem
+    return data as [AnimeListItem]
   } catch (error) {
     console.error("Errore nell'aggiornamento dell'anime nella lista:", error)
-    return null
+    throw error
   }
 }
 

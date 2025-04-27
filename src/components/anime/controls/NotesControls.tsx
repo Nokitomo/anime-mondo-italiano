@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AnimeListItem } from "@/services/supabase-service";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { updateAnimeInList } from "@/services/supabase-service";
 
 interface NotesControlsProps {
@@ -12,7 +12,6 @@ interface NotesControlsProps {
 }
 
 export function NotesControls({ inUserList, onListUpdate }: NotesControlsProps) {
-  const { toast } = useToast();
   const [notes, setNotes] = useState(inUserList.notes || "");
   const [isEditingNotes, setIsEditingNotes] = useState(false);
 
@@ -22,17 +21,15 @@ export function NotesControls({ inUserList, onListUpdate }: NotesControlsProps) 
       if (result && result[0]) {
         onListUpdate(result[0]);
         setIsEditingNotes(false);
-        toast({
-          title: "Note aggiornate",
-          description: "Le note sono state salvate con successo",
+        toast("Note aggiornate", {
+          description: "Le note sono state salvate con successo"
         });
       }
     } catch (error) {
       console.error("Errore nell'aggiornamento delle note:", error);
-      toast({
-        title: "Errore",
+      toast("Errore", {
         description: "Impossibile aggiornare le note",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
