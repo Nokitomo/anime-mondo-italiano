@@ -14,12 +14,7 @@
     "url": "https://github.com/Nokitomo/anime-mondo-italiano/issues"
   },
   "homepage": "https://tuodominio.it/",
-  "keywords": [
-    "anime",
-    "italiano",
-    "react",
-    "vite"
-  ],
+  "keywords": ["anime", "italiano", "react", "vite"],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -83,8 +78,8 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^1.2.2",
     "@eslint/js": "^9.9.0",
-    "@tailwindcss/typography": "^0.5.15",
     "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.4.3",
@@ -96,7 +91,7 @@
     "@typescript-eslint/parser": "^8.31.0",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.20",
-    "eslint": "^9.9.0",
+    "eslint": "^9.13.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",

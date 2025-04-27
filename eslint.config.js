@@ -1,48 +1,24 @@
-import js from "@eslint/js";
-import globals from "globals";
-import * as reactHooks from "eslint-plugin-react-hooks";
-import * as reactRefresh from "eslint-plugin-react-refresh";
-import tsParser from "@typescript-eslint/parser";
-import * as tsPlugin from "@typescript-eslint/eslint-plugin";
+// eslint.config.js
+import { FlatCompat } from '@eslint/eslintrc';
+import { createRequire } from 'module';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
+// Deriva __dirname in ambiente ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Carica la configurazione legacy CommonJS
+const require = createRequire(import.meta.url);
+const legacyConfig = require('./.eslintrc.cjs');
+
+// Crea un'istanza di FlatCompat per migrare la config legacy
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+  recommendedConfig: true,
+});
+
+// Esporta il flat config risultante esteso dal legacy
 export default [
-  // ESLint recommended config for JavaScript
-  js.configs.recommended,
-
-  // Configurazione aggiuntiva per TypeScript e React
-  {
-    ignores: ["dist/**", "coverage/**", "node_modules/**"],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        project: "./tsconfig.json",
-        ecmaVersion: 2020,
-        sourceType: "module"
-      },
-      globals: globals.browser
-    },
-    plugins: {
-      "@typescript-eslint": tsPlugin,
-      "react-hooks": reactHooks,
-      "react-refresh": reactRefresh
-    },
-    rules: {
-      // Regole consigliate TypeScript
-      ...tsPlugin.configs.recommended.rules,
-      // Regole consigliate React Hooks
-      ...reactHooks.configs.recommended.rules,
-      // Regole consigliate React Refresh
-      ...reactRefresh.configs.recommended.rules,
-      // Permetti export di costanti insieme ai componenti
-      "react-refresh/only-export-components": [
-        "warn",
-        { allowConstantExport: true }
-      ],
-      // Disattiva regole non rilevanti per il progetto
-      "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-empty-interface": "off",
-      "@typescript-eslint/no-require-imports": "off"
-    }
-  }
+  ...compat.extendFlatConfig(legacyConfig),
 ];
