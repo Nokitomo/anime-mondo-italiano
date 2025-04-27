@@ -1,351 +1,150 @@
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from '../types/database.types';
-
-// Inizializzazione del cliente Supabase con la chiave pubblica
-export const supabase = createClient<Database>(
-  'https://buzymhfvxyescbrqguga.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1enltaGZ2eHllc2NicnFndWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1MTE5ODIsImV4cCI6MjA2MTA4Nzk4Mn0.obDrwD4s1is-gphqdv2Vra66md3eXjmJtE4cHUHr-QA'
-);
+// Usa l’istanza unica di Supabase da src/integrations/supabase/client.ts
+import { supabase } from "@/integrations/supabase/client";
 
 // Tipi di risposta per l'autenticazione
 export type AuthResponse = {
-  success: boolean;
-  error?: string;
-  user?: any;
-};
+  success: boolean
+  error?: string
+  user?: any
+}
 
-// Funzioni di autenticazione
-export const signUp = async (email: string, password: string, username: string): Promise<AuthResponse> => {
-  try {
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (authError) throw authError;
-
-    // Se l'autenticazione è riuscita, creiamo un profilo utente nel database
-    if (authData.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([
-          { id: authData.user.id, username, created_at: new Date().toISOString() },
-        ]);
-
-      if (profileError) throw profileError;
-    }
-
-    return { success: true, user: authData.user };
-  } catch (error: any) {
-    console.error('Errore nella registrazione:', error.message);
-    return {
-      success: false,
-      error: error.message || 'Si è verificato un errore durante la registrazione.',
-    };
-  }
-};
-
-export const signIn = async (email: string, password: string): Promise<AuthResponse> => {
-  try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) throw error;
-
-    return { success: true, user: data.user };
-  } catch (error: any) {
-    console.error('Errore nel login:', error.message);
-    return {
-      success: false,
-      error: error.message || 'Si è verificato un errore durante il login.',
-    };
-  }
-};
-
-export const signOut = async (): Promise<AuthResponse> => {
-  try {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    return { success: true };
-  } catch (error: any) {
-    console.error('Errore nel logout:', error.message);
-    return {
-      success: false,
-      error: error.message || 'Si è verificato un errore durante il logout.',
-    };
-  }
-};
-
+// Recupera l'utente attualmente autenticato
 export const getCurrentUser = async () => {
   try {
-    const { data } = await supabase.auth.getSession();
-    return data?.session?.user;
+    const { data } = await supabase.auth.getSession()
+    return data?.session?.user
   } catch (error) {
-    console.error('Errore nel recupero dell\'utente corrente:', error);
-    return null;
+    console.error("Errore nel recupero dell'utente corrente:", error)
+    return null
   }
-};
+}
 
-// Funzioni per la gestione della lista anime dell'utente
+// Tipi e funzioni per la gestione della lista anime dell'utente
+
 export type AnimeListItem = {
-  id: string;
-  user_id: string;
-  anime_id: number;
-  status: 'IN_CORSO' | 'COMPLETATO' | 'IN_PAUSA' | 'ABBANDONATO' | 'PIANIFICATO';
-  progress: number;
-  score: number;
-  notes: string;
-  title?: string;
-  cover_image?: string;
-  format?: string;
-  created_at: string;
-  updated_at: string;
-};
+  id: string
+  user_id: string
+  anime_id: number
+  status: "IN_CORSO" | "COMPLETATO" | "IN_PAUSA" | "ABBANDONATO" | "PIANIFICATO"
+  progress?: number | null
+  score?: number | null
+  notes?: string | null
+  title?: string | null
+  cover_image?: string | null
+  format?: string | null
+  created_at: string
+  updated_at?: string
+}
 
-// Verifica se la tabella anime_list esiste nel database
-export const checkAnimeListTableExists = async (): Promise<boolean> => {
+// Verifica se la tabella anime_list esiste (placeholder)
+export const checkAnimeTable = async (): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('anime_list')
-      .select('id')
-      .limit(1);
-    
-    // Se non c'è errore, la tabella esiste
-    return !error;
+    // In Supabase non si possono creare tabelle via client JS
+    console.warn(
+      "La tabella anime_list non esiste. Creala manualmente su https://app.supabase.com"
+    )
+    return false
   } catch (error) {
-    console.error('Errore nella verifica della tabella anime_list:', error);
-    return false;
+    console.error("Errore nella verifica della tabella anime_list:", error)
+    return false
   }
-};
+}
 
-// Crea la tabella anime_list se non esiste
-export const createAnimeListTable = async (): Promise<boolean> => {
+// Recupera la lista anime dell'utente
+export const getUserAnimeList = async (
+  userId: string
+): Promise<AnimeListItem[] | null> => {
   try {
-    // In realtà non possiamo creare tabelle tramite API client
-    // Questo dovrebbe essere fatto tramite l'interfaccia di Supabase
-    console.warn('La tabella anime_list non esiste nel database. Vai su https://supabase.com e crea la tabella manualmente.');
-    return false;
-  } catch (error) {
-    console.error('Errore nella creazione della tabella anime_list:', error);
-    return false;
-  }
-};
-
-export const getUserAnimeList = async (userId: string): Promise<AnimeListItem[]> => {
-  try {
-    // Verifica se la tabella esiste
-    const tableExists = await checkAnimeListTableExists();
-    if (!tableExists) {
-      console.warn('La tabella anime_list non esiste. Restituisco un array vuoto.');
-      return [];
-    }
-    
     const { data, error } = await supabase
-      .from('anime_list')
-      .select('*')
-      .eq('user_id', userId);
-    
-    if (error) {
-      console.error('Errore nel recupero della lista anime:', error.message);
-      throw error;
-    }
-    
-    return data || [];
+      .from("anime_list")
+      .select("*")
+      .eq("user_id", userId)
+    if (error) throw error
+    return data as AnimeListItem[]
   } catch (error) {
-    console.error('Errore nel recupero della lista anime:', error);
-    return [];
+    console.error("Errore nel recupero della lista anime:", error)
+    return null
   }
-};
+}
 
+// Aggiunge un anime alla lista dell'utente
 export const addAnimeToList = async (
-  animeId: number,
-  status: 'IN_CORSO' | 'COMPLETATO' | 'IN_PAUSA' | 'ABBANDONATO' | 'PIANIFICATO',
-  progress: number = 0,
-  score: number = 0,
-  notes: string = '',
-  title: string = '',
-  coverImage: string = '',
-  format: string = ''
-) => {
+  item: Omit<AnimeListItem, "id" | "created_at" | "updated_at">
+): Promise<AnimeListItem | null> => {
   try {
-    const user = await getCurrentUser();
-    
-    if (!user) {
-      throw new Error('Utente non autenticato');
-    }
-    
-    // Verifica se la tabella esiste
-    const tableExists = await checkAnimeListTableExists();
-    if (!tableExists) {
-      await createAnimeListTable();
-      throw new Error('La tabella anime_list non esiste nel database. È necessario crearla manualmente tramite l\'interfaccia di Supabase.');
-    }
-    
-    // Verifica se l'anime è già nella lista
-    const { data: existingAnime, error: checkError } = await supabase
-      .from('anime_list')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('anime_id', animeId)
-      .single();
-    
-    if (checkError && checkError.code !== 'PGRST116') {
-      // PGRST116 significa "nessun risultato", che è ciò che vogliamo
-      console.error('Errore nel controllo anime esistente:', checkError);
-      throw checkError;
-    }
-    
-    if (existingAnime) {
-      // L'anime è già nella lista, aggiorniamo i dati
-      const { data, error } = await supabase
-        .from('anime_list')
-        .update({
-          status,
-          progress,
-          score,
-          notes,
-          title: title,
-          cover_image: coverImage,
-          format: format,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existingAnime.id)
-        .select();
-      
-      if (error) {
-        console.error('Errore nell\'aggiornamento dell\'anime nella lista:', error);
-        throw error;
-      }
-      
-      return data;
-    } else {
-      // L'anime non è nella lista, lo aggiungiamo
-      const { data, error } = await supabase
-        .from('anime_list')
-        .insert([
-          {
-            user_id: user.id,
-            anime_id: animeId,
-            status,
-            progress,
-            score,
-            notes,
-            title: title,
-            cover_image: coverImage,
-            format: format,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ])
-        .select();
-      
-      if (error) {
-        console.error('Errore nell\'aggiunta dell\'anime alla lista:', error);
-        throw error;
-      }
-      
-      return data;
-    }
-  } catch (error) {
-    console.error('Errore nell\'operazione con la lista anime:', error);
-    throw error;
-  }
-};
+    const user = await getCurrentUser()
+    if (!user) throw new Error("Utente non autenticato")
 
+    const { data, error } = await supabase
+      .from("anime_list")
+      .insert({ ...item, user_id: user.id })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data as AnimeListItem
+  } catch (error) {
+    console.error("Errore nell'aggiunta dell'anime alla lista:", error)
+    return null
+  }
+}
+
+// Verifica se un anime esiste già nella lista dell'utente
+export const checkAnimeInUserList = async (
+  animeId: number
+): Promise<boolean> => {
+  try {
+    const user = await getCurrentUser()
+    if (!user) throw new Error("Utente non autenticato")
+
+    const { data: existing, error } = await supabase
+      .from("anime_list")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("anime_id", animeId)
+      .single()
+
+    if (error && error.code !== "PGRST116") throw error
+    return !!existing
+  } catch (error) {
+    console.error("Errore nel controllo anime esistente:", error)
+    return false
+  }
+}
+
+// Aggiorna i dati di un anime già presente nella lista
 export const updateAnimeInList = async (
   id: string,
-  updates: Partial<Omit<AnimeListItem, 'id' | 'user_id' | 'anime_id' | 'created_at'>>
-) => {
+  updates: Partial<Omit<AnimeListItem, "id" | "user_id" | "anime_id" | "created_at">>
+): Promise<AnimeListItem | null> => {
   try {
-    const user = await getCurrentUser();
-    
-    if (!user) {
-      throw new Error('Utente non autenticato');
-    }
-    
-    // Aggiorniamo la data di modifica
-    updates.updated_at = new Date().toISOString();
-    
     const { data, error } = await supabase
-      .from('anime_list')
+      .from("anime_list")
       .update(updates)
-      .eq('id', id)
-      .eq('user_id', user.id) // Assicuriamoci che l'utente stia modificando solo i propri dati
-      .select();
-    
-    if (error) {
-      console.error('Errore nell\'aggiornamento dell\'anime nella lista:', error.message);
-      throw error;
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Errore nell\'aggiornamento dell\'anime nella lista:', error);
-    throw error;
-  }
-};
+      .eq("id", id)
+      .select()
+      .single()
 
-export const removeAnimeFromList = async (id: string) => {
+    if (error) throw error
+    return data as AnimeListItem
+  } catch (error) {
+    console.error("Errore nell'aggiornamento dell'anime nella lista:", error)
+    return null
+  }
+}
+
+// Rimuove un anime dalla lista dell'utente
+export const removeAnimeFromList = async (id: string): Promise<boolean> => {
   try {
-    const user = await getCurrentUser();
-    
-    if (!user) {
-      throw new Error('Utente non autenticato');
-    }
-    
     const { error } = await supabase
-      .from('anime_list')
+      .from("anime_list")
       .delete()
-      .eq('id', id)
-      .eq('user_id', user.id); // Sicurezza aggiuntiva
-    
-    if (error) {
-      console.error('Errore nella rimozione dell\'anime dalla lista:', error.message);
-      throw error;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Errore nella rimozione dell\'anime dalla lista:', error);
-    throw error;
-  }
-};
+      .eq("id", id)
 
-export const checkAnimeInUserList = async (animeId: number): Promise<AnimeListItem | null> => {
-  try {
-    const user = await getCurrentUser();
-    
-    if (!user) {
-      return null;
-    }
-    
-    // Verifica se la tabella esiste
-    const tableExists = await checkAnimeListTableExists();
-    if (!tableExists) {
-      console.warn('La tabella anime_list non esiste. Restituisco null.');
-      return null;
-    }
-    
-    const { data, error } = await supabase
-      .from('anime_list')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('anime_id', animeId)
-      .single();
-    
-    if (error) {
-      if (error.code === 'PGRST116') { // Nessun risultato
-        return null;
-      }
-      console.error('Errore nel controllo anime nella lista:', error);
-      throw error;
-    }
-    
-    return data;
+    if (error) throw error
+    return true
   } catch (error) {
-    console.error('Errore nel controllo anime nella lista:', error);
-    return null;
+    console.error("Errore nella rimozione dell'anime dalla lista:", error)
+    return false
   }
-};
+}
