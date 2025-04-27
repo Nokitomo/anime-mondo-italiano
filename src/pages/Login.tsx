@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -19,7 +19,9 @@ const LoginPage = () => {
     setIsLoading(true);
     
     if (!email || !password) {
-      toast.error("Inserisci email e password");
+      toast("Errore", {
+        description: "Inserisci email e password"
+      });
       setIsLoading(false);
       return;
     }
@@ -27,12 +29,16 @@ const LoginPage = () => {
     try {
       const success = await login(email, password);
       if (success) {
-        toast.success("Login effettuato con successo");
+        toast("Login effettuato", {
+          description: "Login effettuato con successo"
+        });
         navigate('/');
       }
     } catch (err) {
       console.error("Errore durante il login:", err);
-      toast.error("Impossibile effettuare il login. Verifica le credenziali.");
+      toast("Errore", {
+        description: "Impossibile effettuare il login. Verifica le credenziali."
+      });
     } finally {
       setIsLoading(false);
     }

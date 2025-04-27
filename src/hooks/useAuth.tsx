@@ -1,7 +1,6 @@
-
 import { useState, useEffect, createContext, useContext } from "react";
 import { supabase } from "../integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 type User = {
   id: string;
@@ -26,7 +25,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUserState] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
 
   const setUser = (updates: Partial<User>) => {
     setUserState(prevUser => prevUser ? { ...prevUser, ...updates } : null);
@@ -125,10 +123,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) {
         console.error("Errore nel login:", error.message);
         setError(error.message || "Credenziali non valide");
-        toast({
-          title: "Errore",
+        toast("Errore", {
           description: error.message || "Credenziali non valide",
-          variant: "destructive",
         });
         return false;
       }
@@ -138,8 +134,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return false;
       }
       
-      toast({
-        title: "Login effettuato",
+      toast("Login effettuato", {
         description: "Benvenuto in AnimeIT!",
       });
       
@@ -147,10 +142,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error: any) {
       console.error("Eccezione durante il login:", error);
       setError(error.message || "Si è verificato un errore durante il login");
-      toast({
-        title: "Errore",
+      toast("Errore", {
         description: error.message || "Si è verificato un errore",
-        variant: "destructive",
       });
       return false;
     } finally {
