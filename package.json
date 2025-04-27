@@ -2,6 +2,7 @@
   "name": "anime-mondo-italiano",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Piattaforma in React + Vite per leggere e commentare anime in italiano",
   "author": "Nokitomo <tuo@email.it>",
   "license": "MIT",
