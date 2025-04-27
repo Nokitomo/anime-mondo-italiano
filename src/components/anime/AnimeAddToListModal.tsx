@@ -21,8 +21,6 @@ interface AddToListModalProps {
   onUpdate: (item: AnimeListItem | null) => void
 }
 
-// Ho aggiornato la prima opzione da "In corso" a "In visione",
-// per allinearla a statusLabels["IN_CORSO"] che usi in AnimeBanner.
 const statusOptions: { label: string; value: AnimeListItem["status"] }[] = [
   { label: "In visione", value: "IN_CORSO" },
   { label: "Completato", value: "COMPLETATO" },
@@ -39,7 +37,6 @@ export function AddToListModal({
   onClose,
   onUpdate,
 }: AddToListModalProps) {
-  // Inizializziamo sempre al valore effettivo di `initial.status`
   const [status, setStatus] = React.useState<AnimeListItem["status"]>(
     initial?.status ?? "IN_CORSO"
   )
@@ -89,7 +86,6 @@ export function AddToListModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      {/* Uso una key basata su initial.status per reinizializzare il radio */}
       <DialogContent key={initial?.status}>
         <DialogHeader>
           <DialogTitle>

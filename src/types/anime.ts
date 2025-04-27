@@ -166,14 +166,14 @@ export interface AnimeDetailsResponse {
   };
 }
 
+export type AnimeStatus = "IN_CORSO" | "COMPLETATO" | "IN_PAUSA" | "ABBANDONATO" | "PIANIFICATO" | "REWATCH";
+
 export interface UserAnimeItem extends AnimeMedia {
-  status: "IN_CORSO" | "COMPLETATO" | "IN_PAUSA" | "ABBANDONATO" | "PIANIFICATO" | "REWATCH";
+  status: AnimeStatus;
   progress: number;
   score: number;
   notes: string;
 }
-
-export type AnimeStatus = "IN_CORSO" | "COMPLETATO" | "IN_PAUSA" | "ABBANDONATO" | "PIANIFICATO" | "REWATCH";
 
 export const statusLabels: Record<AnimeStatus, string> = {
   IN_CORSO: "In visione",

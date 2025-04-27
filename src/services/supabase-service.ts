@@ -26,7 +26,7 @@ export type AnimeListItem = {
   id: string
   user_id: string
   anime_id: number
-  status: "IN_CORSO" | "COMPLETATO" | "IN_PAUSA" | "ABBANDONATO" | "PIANIFICATO"
+  status: "IN_CORSO" | "COMPLETATO" | "IN_PAUSA" | "ABBANDONATO" | "PIANIFICATO" | "REWATCH"
   progress: number
   score: number
   notes: string
