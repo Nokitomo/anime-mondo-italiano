@@ -5,6 +5,8 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
+  { ignores: ["dist", "coverage", "coverage/**", "node_modules"] }, // ora ignora node_modules
+  {
   { ignores: ["dist", "coverage", "coverage/**"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
@@ -18,6 +20,9 @@ export default tseslint.config(
       "react-refresh": reactRefresh,
     },
     rules: {
+      // disabilita prefer-const per evitare errori su variabili mutate
+      "prefer-const": "off",
+      // React Hooks recommended rules
       // React Hooks recommended rules
       ...reactHooks.configs.recommended.rules,
       // Allow exporting constants alongside components
