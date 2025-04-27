@@ -1,4 +1,4 @@
-// .eslintrc.cjs
+// .eslintrc.cjs — configurazione legacy ESLint
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
@@ -24,17 +24,19 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:react-hooks/recommended',
-    'plugin:react-refresh/recommended'
+    'plugin:react-hooks/recommended'
   ],
   rules: {
     'prefer-const': 'off',
+    // React Hooks rules
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
+    // React Refresh rule (solo regola, no extends)
     'react-refresh/only-export-components': [
       'warn',
       { allowConstantExport: true }
     ],
+    // Disattiva regole non rilevanti
     '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
