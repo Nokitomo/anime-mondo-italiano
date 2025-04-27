@@ -5,24 +5,22 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", "coverage", "coverage/**", "node_modules"] }, // ora ignora node_modules
   {
-  { ignores: ["dist", "coverage", "coverage/**"] },
+    ignores: ["dist", "coverage", "coverage/**", "node_modules"]
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: globals.browser
     },
     plugins: {
       "react-hooks": reactHooks,
-      "react-refresh": reactRefresh,
+      "react-refresh": reactRefresh
     },
     rules: {
-      // disabilita prefer-const per evitare errori su variabili mutate
       "prefer-const": "off",
-      // React Hooks recommended rules
       // React Hooks recommended rules
       ...reactHooks.configs.recommended.rules,
       // Allow exporting constants alongside components
@@ -35,6 +33,6 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-empty-object-type": "off",
       "@typescript-eslint/no-require-imports": "off"
-    },
+    }
   }
 );
