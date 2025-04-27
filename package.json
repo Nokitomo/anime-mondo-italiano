@@ -14,13 +14,19 @@
     "url": "https://github.com/Nokitomo/anime-mondo-italiano/issues"
   },
   "homepage": "https://tuodominio.it/",
-  "keywords": ["anime", "italiano", "react", "vite"],
+  "keywords": [
+    "anime",
+    "italiano",
+    "react",
+    "vite"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\"",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "jest --passWithNoTests"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
