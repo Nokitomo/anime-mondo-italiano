@@ -6,8 +6,8 @@ import tsParser from "@typescript-eslint/parser";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 
 export default [
-  // Configurazione base per JavaScript consigliata
-  ...js.configs.recommendedFlat,
+  // ESLint recommended config for JavaScript
+  js.configs.recommended,
 
   // Configurazione aggiuntiva per TypeScript e React
   {
