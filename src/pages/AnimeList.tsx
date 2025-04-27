@@ -142,7 +142,7 @@ const AnimeList = () => {
             ) : sortedAndFilteredList.length > 0 ? (
               <AnimeListContent
                 items={sortedAndFilteredList}
-                activeTab={activeTab}
+                activeTab={activeTab as AnimeStatus}
                 onDeleteClick={setAnimeToDelete}
                 onProgressUpdate={handleUpdateProgress}
                 animeToDelete={animeToDelete}

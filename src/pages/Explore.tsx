@@ -17,13 +17,15 @@ const Explore = () => {
     queryFn: () => getTrendingAnime(),
     staleTime: 5 * 60 * 1000,
     retry: 2,
-    onError: (err: any) => {
-      console.error("Errore nel caricamento degli anime:", err);
-      toast({
-        title: "Errore",
-        description: "Si è verificato un errore nel caricamento degli anime.",
-        variant: "destructive",
-      });
+    onSettled: (data, error) => {
+      if (error) {
+        console.error("Errore nel caricamento degli anime:", error);
+        toast({
+          title: "Errore",
+          description: "Si è verificato un errore nel caricamento degli anime.",
+          variant: "destructive",
+        });
+      }
     }
   });
 
