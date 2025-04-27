@@ -1,8 +1,8 @@
-// Setup file for Jest
-// Adds custom jest matchers for asserting on DOM nodes
+// src/setupTests.ts
+
+// Setup file per Jest: aggiunge i matcher di jest-dom
 import '@testing-library/jest-dom';
 
-// You can add global mocks or configurations here if needed
-// e.g., mock fetch globally:
+// Qui puoi inserire eventuali mock globali, es.:
 // import 'jest-fetch-mock';
 // fetchMock.enableMocks();
