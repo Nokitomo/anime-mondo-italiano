@@ -1,8 +1,8 @@
+
 import * as React from "react"
 import type { CarouselApi, CarouselViewportRef } from "@/hooks/use-carousel"
 
 interface CarouselContextProps {
-  // callback ref fornito da Embla
   carouselRef: CarouselViewportRef
   api: CarouselApi
   scrollPrev: () => void

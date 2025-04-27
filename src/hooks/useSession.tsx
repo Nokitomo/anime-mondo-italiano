@@ -4,8 +4,14 @@ import { supabase } from "../integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { toast } from "@/hooks/use-toast";
 
+// Extend the User type to include our custom fields
+interface ExtendedUser extends User {
+  username?: string;
+  avatar_url?: string;
+}
+
 export type SessionState = {
-  user: User | null;
+  user: ExtendedUser | null;
   session: Session | null;
   loading: boolean;
   error: string | null;
@@ -40,7 +46,7 @@ export const useSession = () => {
                   ...session.user,
                   username: profileData?.username,
                   avatar_url: profileData?.avatar_url
-                },
+                } as ExtendedUser,
                 session,
                 loading: false,
                 error: null
@@ -83,7 +89,7 @@ export const useSession = () => {
               ...data.session.user,
               username: profileData?.username,
               avatar_url: profileData?.avatar_url
-            },
+            } as ExtendedUser,
             session: data.session,
             loading: false,
             error: null

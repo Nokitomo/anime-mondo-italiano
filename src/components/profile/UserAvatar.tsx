@@ -18,8 +18,8 @@ export const UserAvatar = ({ email, username }: UserAvatarProps) => {
   const userInitial = username ? username[0].toUpperCase() : email ? email[0].toUpperCase() : "U";
   const displayName = username || email || "Utente";
   
-  // Utilizziamo l'avatar_url se presente nell'oggetto utente
-  const avatarUrl = user?.avatar_url || null;
+  // Use type assertion to access avatar_url which is added by our database
+  const avatarUrl = user && 'avatar_url' in user ? (user as any).avatar_url : null;
 
   return (
     <div className="relative flex flex-col items-center mb-8">

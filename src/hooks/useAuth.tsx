@@ -4,11 +4,17 @@ import { User } from "@supabase/supabase-js";
 import { useSession } from "./useSession";
 import { useAuthOperations } from "./useAuthOperations";
 
+// Extend User type to include our custom properties
+interface ExtendedUser extends User {
+  username?: string;
+  avatar_url?: string;
+}
+
 type AuthContextType = {
-  user: User | null;
+  user: ExtendedUser | null;
   loading: boolean;
   error: string | null;
-  setUser: (updates: Partial<User>) => void;
+  setUser: (updates: Partial<ExtendedUser>) => void;
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string, username: string) => Promise<boolean>;
   logout: () => Promise<boolean>;
@@ -20,7 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { user, loading: sessionLoading, error: sessionError } = useSession();
   const { loading: operationsLoading, error: operationsError, login, register, logout } = useAuthOperations();
 
-  const setUser = (updates: Partial<User>) => {
+  const setUser = (updates: Partial<ExtendedUser>) => {
     if (!user) return;
     // This is handled by useSession now, which will automatically update when the profile changes
   };

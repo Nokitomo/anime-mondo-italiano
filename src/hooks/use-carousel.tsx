@@ -1,15 +1,16 @@
+
 import * as React from "react";
-import useEmblaCarousel, { EmblaViewportRefType } from "embla-carousel-react";
+import useEmblaCarousel from "embla-carousel-react";
 import type {
   EmblaOptionsType,
   EmblaPluginType,
-  EmblaCarouselType,
 } from "embla-carousel";
 
+// Define our own type for the carousel API to avoid conflicts
 export type CarouselOptions = EmblaOptionsType;
 export type CarouselPlugin = EmblaPluginType;
-export type CarouselApi = EmblaCarouselType;
-export type CarouselViewportRef = EmblaViewportRefType;
+export type CarouselApi = ReturnType<typeof useEmblaCarousel>[1];
+export type CarouselViewportRef = ReturnType<typeof useEmblaCarousel>[0];
 
 export interface UseCarouselProps {
   opts?: CarouselOptions;
@@ -35,18 +36,18 @@ export function useCarousel({
   const [canScrollPrev, setCanScrollPrev] = React.useState(false);
   const [canScrollNext, setCanScrollNext] = React.useState(false);
 
-  const onSelect = React.useCallback((emblaApi: CarouselApi) => {
-    if (!emblaApi) return;
-    setCanScrollPrev(emblaApi.canScrollPrev());
-    setCanScrollNext(emblaApi.canScrollNext());
-  }, []);
+  const onSelect = React.useCallback(() => {
+    if (!api) return;
+    setCanScrollPrev(api.canScrollPrev());
+    setCanScrollNext(api.canScrollNext());
+  }, [api]);
 
   const scrollPrev = React.useCallback(() => {
-    api?.scrollPrev();
+    if (api) api.scrollPrev();
   }, [api]);
 
   const scrollNext = React.useCallback(() => {
-    api?.scrollNext();
+    if (api) api.scrollNext();
   }, [api]);
 
   const handleKeyDown = React.useCallback(
@@ -69,7 +70,7 @@ export function useCarousel({
 
   React.useEffect(() => {
     if (!api) return;
-    onSelect(api);
+    onSelect();
     api.on("reInit", onSelect);
     api.on("select", onSelect);
     return () => {
