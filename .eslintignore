@@ -1,0 +1,7 @@
+# Cartelle di output e report da ignorare
+dist
+coverage
+coverage/**
+
+# Dipendenze
+node_modules
