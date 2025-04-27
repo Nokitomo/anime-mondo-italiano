@@ -1,17 +1,25 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "anime-mondo-italiano",
+  "version": "0.1.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "description": "Piattaforma in React + Vite per leggere e commentare anime in italiano",
+  "author": "Nokitomo <tuo@email.it>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nokitomo/anime-mondo-italiano.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Nokitomo/anime-mondo-italiano/issues"
+  },
+  "homepage": "https://tuodominio.it/",
+  "keywords": ["anime", "italiano", "react", "vite"],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:dev": "vite build --mode development",
-    "lint": "eslint .",
     "preview": "vite preview",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\"",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
