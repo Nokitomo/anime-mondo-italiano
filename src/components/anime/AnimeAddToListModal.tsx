@@ -1,4 +1,3 @@
-
 // src/components/anime/AnimeAddToListModal.tsx
 import * as React from "react"
 import {
@@ -30,6 +29,7 @@ const statusOptions: { label: string; value: AnimeListItem["status"] }[] = [
   { label: "In pausa", value: "IN_PAUSA" },
   { label: "Abbandonato", value: "ABBANDONATO" },
   { label: "Pianificato", value: "PIANIFICATO" },
+  { label: "Rivisto", value: "REWATCH" },
 ]
 
 export function AddToListModal({
