@@ -73,7 +73,7 @@ export function ProgressControls({ anime, inUserList, onListUpdate }: ProgressCo
               onClick={() => updateProgress(progress + 1)}
               disabled={anime.episodes ? progress >= anime.episodes : false}
             >
-              +1
+              +1 
             </Button>
           </div>
         )}
