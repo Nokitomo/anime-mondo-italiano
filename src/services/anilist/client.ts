@@ -6,7 +6,7 @@ interface GraphQLResponse<T> {
   errors?: Array<{ message: string }>;
 }
 
-export async function queryAnilistAPI<T>(query: string, variables?: Record<string, any>): Promise<GraphQLResponse<T>> {
+export async function queryAnilistAPI<T>(query: string, variables?: Record<string, any>): Promise<T> {
   try {
     const response = await fetch(ANILIST_API_URL, {
       method: "POST",
@@ -31,7 +31,8 @@ export async function queryAnilistAPI<T>(query: string, variables?: Record<strin
       throw new Error(data.errors[0].message);
     }
 
-    return data;
+    // Restituisci direttamente i dati invece dell'intero oggetto risposta
+    return data.data;
   } catch (error) {
     console.error("Errore nella richiesta API:", error);
     throw error;

@@ -23,7 +23,7 @@ const AnimeDetailsPage = () => {
     enabled: !!id,
   });
   
-  const anime = data?.data?.Media;
+  const anime = data?.Media;
   
   useEffect(() => {
     const translateDescription = async () => {
