@@ -5,6 +5,8 @@ import {
   checkAnimeInUserList,
   AnimeListItem,
   removeAnimeFromList,
+  addAnimeToList,
+  updateAnimeInList,
 } from "@/services/supabase-service";
 import { AddToListModal } from "./anime/AnimeAddToListModal";
 import { ProgressModal } from "./anime/AnimeProgressModal";
