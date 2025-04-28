@@ -1,10 +1,11 @@
+
 import {
   AnimeSearchResponse,
   TrendingAnimeResponse,
   AnimeDetailsResponse,
 } from "@/types/anime";
 
-const ANILIST_API_URL = import.meta.env.VITE_ANILIST_API_URL;
+const ANILIST_API_URL = "https://graphql.anilist.co";
 
 const searchQuery = `
   query ($search: String, $page: Int, $perPage: Int, $type: MediaType) {
@@ -266,79 +267,103 @@ export const searchAnime = async (
   perPage = 20,
   type: "ANIME" | "MANGA" = "ANIME"
 ): Promise<AnimeSearchResponse> => {
-  const response = await fetch(ANILIST_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({
-      query: searchQuery,
-      variables: {
-        search,
-        page,
-        perPage,
-        type,
+  try {
+    const response = await fetch(ANILIST_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
       },
-    }),
-  });
+      body: JSON.stringify({
+        query: searchQuery,
+        variables: {
+          search,
+          page,
+          perPage,
+          type,
+        },
+      }),
+    });
 
-  const data = await response.json();
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
 
-  if (data.errors) {
-    console.error("Errore nella ricerca degli anime:", data.errors);
-    throw new Error(data.errors[0].message);
+    const data = await response.json();
+
+    if (data.errors) {
+      console.error("Errore nella ricerca degli anime:", data.errors);
+      throw new Error(data.errors[0].message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Errore nella ricerca degli anime:", error);
+    throw error;
   }
-
-  return data;
 };
 
 export const getTrendingAnime = async (): Promise<TrendingAnimeResponse> => {
-  const response = await fetch(ANILIST_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({
-      query: trendingQuery,
-    }),
-  });
+  try {
+    const response = await fetch(ANILIST_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        query: trendingQuery,
+      }),
+    });
 
-  const data = await response.json();
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
 
-  if (data.errors) {
-    console.error("Errore nel recupero degli anime di tendenza:", data.errors);
-    throw new Error(data.errors[0].message);
+    const data = await response.json();
+
+    if (data.errors) {
+      console.error("Errore nel recupero degli anime di tendenza:", data.errors);
+      throw new Error(data.errors[0].message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Errore nel recupero degli anime di tendenza:", error);
+    throw error;
   }
-
-  return data;
 };
 
 export const getAnimeDetails = async (
   id: number
 ): Promise<AnimeDetailsResponse> => {
-  const response = await fetch(ANILIST_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({
-      query: detailsQuery,
-      variables: { id },
-    }),
-  });
+  try {
+    const response = await fetch(ANILIST_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        query: detailsQuery,
+        variables: { id },
+      }),
+    });
 
-  const data = await response.json();
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
 
-  if (data.errors) {
-    console.error(
-      "Errore nel recupero dei dettagli dell'anime:",
-      data.errors
-    );
-    throw new Error(data.errors[0].message);
+    const data = await response.json();
+
+    if (data.errors) {
+      console.error("Errore nel recupero dei dettagli dell'anime:", data.errors);
+      throw new Error(data.errors[0].message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Errore nel recupero dei dettagli dell'anime:", error);
+    throw error;
   }
-
-  return data;
 };
