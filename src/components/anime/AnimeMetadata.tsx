@@ -22,10 +22,10 @@ export const AnimeMetadata = ({ anime, nextEpisodeFormatted }: AnimeMetadataProp
           {anime.episodes} episodi
         </Badge>
       )}
-      {nextEpisodeFormatted && (
+      {anime.nextAiringEpisode && anime.status === "RELEASING" && (
         <Badge variant="outline" className="bg-white/10 backdrop-blur-sm">
           <Calendar className="w-3 h-3 mr-1" />
-          Ep. {(anime.episodes ? anime.episodes : 0) + 1} il {nextEpisodeFormatted}
+          Ep. {anime.nextAiringEpisode.episode}
         </Badge>
       )}
       {anime.averageScore > 0 && (

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import type { AnimeMedia } from "@/types/anime";
@@ -12,7 +13,6 @@ import { AddToListModal } from "./anime/AnimeAddToListModal";
 import { ProgressModal } from "./anime/AnimeProgressModal";
 import { ScoreModal } from "./anime/AnimeScoreModal";
 import { AnimeRemoveDialog } from "./anime/banner/AnimeRemoveDialog";
-import { AnimeBannerMedia } from "./anime/banner/AnimeBannerMedia";
 import { AnimeBannerControls } from "./anime/banner/AnimeBannerControls";
 import { AnimeBannerInfo } from "./anime/banner/AnimeBannerInfo";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +28,7 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [showScoreModal, setShowScoreModal] = useState(false);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const [nextEpisodeFormatted, setNextEpisodeFormatted] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadListStatus() {
@@ -37,6 +38,30 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
     }
     loadListStatus();
   }, [anime.id, user]);
+  
+  useEffect(() => {
+    if (anime.nextAiringEpisode) {
+      const { timeUntilAiring, episode } = anime.nextAiringEpisode;
+      
+      // Converti i secondi in giorni e ore
+      const days = Math.floor(timeUntilAiring / 86400);
+      const hours = Math.floor((timeUntilAiring % 86400) / 3600);
+      
+      let timeText = "";
+      if (days > 0) {
+        timeText += `${days} ${days === 1 ? 'giorno' : 'giorni'}`;
+      }
+      
+      if (hours > 0 || days === 0) {
+        if (days > 0) timeText += ' e ';
+        timeText += `${hours} ${hours === 1 ? 'ora' : 'ore'}`;
+      }
+      
+      setNextEpisodeFormatted(`L'episodio ${episode} va in onda tra ${timeText}`);
+    } else {
+      setNextEpisodeFormatted(null);
+    }
+  }, [anime.nextAiringEpisode]);
 
   const handleUpdateItem = async (newStatus: AnimeListItem["status"] | null, newProgress?: number, newScore?: number) => {
     try {
@@ -132,7 +157,7 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
               anime={anime} 
               studios={studios}
               startDate={`${anime.startDate?.year || "?"}`}
-              nextEpisodeFormatted={null}
+              nextEpisodeFormatted={nextEpisodeFormatted}
             />
           </div>
         </div>

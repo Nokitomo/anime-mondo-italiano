@@ -17,6 +17,12 @@ export function AnimeBannerInfo({ anime, studios, startDate, nextEpisodeFormatte
       <AnimeTitle title={anime.title} />
       <AnimeMetadata anime={anime} nextEpisodeFormatted={nextEpisodeFormatted} />
       
+      {nextEpisodeFormatted && anime.status === "RELEASING" && (
+        <div className="text-sm my-2 py-1 px-2 bg-anime-primary/20 inline-block rounded-md">
+          {nextEpisodeFormatted}
+        </div>
+      )}
+      
       <div className="text-sm">
         <p className="mb-1"><span className="opacity-70">Studio:</span> {studios}</p>
         <p><span className="opacity-70">Anno:</span> {startDate}</p>

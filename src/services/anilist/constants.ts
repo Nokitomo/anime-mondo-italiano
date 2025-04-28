@@ -51,6 +51,11 @@ export const ANIME_SEARCH_QUERY = `
           }
         }
         type
+        nextAiringEpisode {
+          airingAt
+          timeUntilAiring
+          episode
+        }
       }
     }
   }
@@ -86,6 +91,11 @@ export const ANIME_TRENDING_QUERY = `
           }
         }
         type
+        nextAiringEpisode {
+          airingAt
+          timeUntilAiring
+          episode
+        }
       }
     }
     popular: Page(page: 1, perPage: 6) {
@@ -157,6 +167,11 @@ export const ANIME_DETAILS_QUERY = `
         year
         month
         day
+      }
+      nextAiringEpisode {
+        airingAt
+        timeUntilAiring
+        episode
       }
       studios {
         nodes {
