@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { translateText } from "@/services/translation-service";
@@ -87,13 +86,12 @@ const AnimeDetailsPage = () => {
   const characterEdges = anime.characters?.edges || [];
   const staff = anime.staff?.edges || [];
   
-  // Create properly formatted relation items with full AnimeMedia objects
   const formattedRelations = relations.map(rel => ({
     id: rel.node.id,
     title: rel.node.title,
     coverImage: rel.node.coverImage,
     type: rel.relationType,
-    node: rel.node as AnimeMedia, // Cast to AnimeMedia
+    node: rel.node as AnimeMedia,
     label: relationLabels[rel.relationType] || rel.relationType
   }));
   
