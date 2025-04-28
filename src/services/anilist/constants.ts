@@ -1,13 +1,7 @@
 
-import {
-  AnimeSearchResponse,
-  TrendingAnimeResponse,
-  AnimeDetailsResponse,
-} from "@/types/anime";
+export const ANILIST_API_URL = "https://graphql.anilist.co";
 
-const ANILIST_API_URL = "https://graphql.anilist.co";
-
-const searchQuery = `
+export const ANIME_SEARCH_QUERY = `
   query ($search: String, $page: Int, $perPage: Int, $type: MediaType) {
     Page(page: $page, perPage: $perPage) {
       pageInfo {
@@ -62,7 +56,7 @@ const searchQuery = `
   }
 `;
 
-const trendingQuery = `
+export const ANIME_TRENDING_QUERY = `
   query {
     trending: Page(page: 1, perPage: 6) {
       media(sort: TRENDING_DESC, type: ANIME) {
@@ -129,7 +123,7 @@ const trendingQuery = `
   }
 `;
 
-const detailsQuery = `
+export const ANIME_DETAILS_QUERY = `
   query ($id: Int) {
     Media(id: $id) {
       id
@@ -260,110 +254,3 @@ const detailsQuery = `
     }
   }
 `;
-
-export const searchAnime = async (
-  search: string,
-  page = 1,
-  perPage = 20,
-  type: "ANIME" | "MANGA" = "ANIME"
-): Promise<AnimeSearchResponse> => {
-  try {
-    const response = await fetch(ANILIST_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        query: searchQuery,
-        variables: {
-          search,
-          page,
-          perPage,
-          type,
-        },
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.errors) {
-      console.error("Errore nella ricerca degli anime:", data.errors);
-      throw new Error(data.errors[0].message);
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Errore nella ricerca degli anime:", error);
-    throw error;
-  }
-};
-
-export const getTrendingAnime = async (): Promise<TrendingAnimeResponse> => {
-  try {
-    const response = await fetch(ANILIST_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        query: trendingQuery,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.errors) {
-      console.error("Errore nel recupero degli anime di tendenza:", data.errors);
-      throw new Error(data.errors[0].message);
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Errore nel recupero degli anime di tendenza:", error);
-    throw error;
-  }
-};
-
-export const getAnimeDetails = async (
-  id: number
-): Promise<AnimeDetailsResponse> => {
-  try {
-    const response = await fetch(ANILIST_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        query: detailsQuery,
-        variables: { id },
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.errors) {
-      console.error("Errore nel recupero dei dettagli dell'anime:", data.errors);
-      throw new Error(data.errors[0].message);
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Errore nel recupero dei dettagli dell'anime:", error);
-    throw error;
-  }
-};
