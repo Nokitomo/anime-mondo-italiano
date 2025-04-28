@@ -1,3 +1,4 @@
+
 // src/components/anime/AnimeAddToListModal.tsx
 import * as React from "react"
 import {
@@ -6,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/hooks/use-toast"
@@ -53,21 +55,38 @@ export function AddToListModal({
           : initial?.progress ?? 0
 
       let updatedRow: AnimeListItem
+      
+      // Prepara i dati necessari
+      const title = anime.title.userPreferred || anime.title.romaji || anime.title.english || anime.title.native;
+      const coverImage = anime.coverImage.large || anime.coverImage.medium || "";
+      const format = anime.format || "";
+      
       if (initial) {
-        const [data] = await updateAnimeInList(initial.id, {
+        // Se stiamo aggiornando, assicuriamoci che i metadati vengano aggiornati se mancanti
+        const updates: Record<string, any> = {
           status,
           progress: newProgress,
-        })
-        updatedRow = data
+        };
+        
+        if (!initial.title) updates.title = title;
+        if (!initial.cover_image) updates.cover_image = coverImage;
+        if (!initial.format) updates.format = format;
+        
+        const [data] = await updateAnimeInList(initial.id, updates);
+        updatedRow = data;
       } else {
+        // Se stiamo aggiungendo, includi tutti i dati
         const [data] = await addAnimeToList(
           anime.id,
           status,
           newProgress,
           initial?.score ?? 0,
-          ""
-        )
-        updatedRow = data
+          "",
+          title,
+          coverImage,
+          format
+        );
+        updatedRow = data;
       }
 
       onUpdate(updatedRow)
@@ -91,6 +110,9 @@ export function AddToListModal({
           <DialogTitle>
             {initial ? "Modifica stato nell'elenco" : "Aggiungi alla lista"}
           </DialogTitle>
+          <DialogDescription>
+            Seleziona lo stato per questo anime nella tua lista personale.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
           {statusOptions.map((opt) => (

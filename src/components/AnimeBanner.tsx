@@ -8,18 +8,22 @@ import {
   checkAnimeInUserList,
   AnimeListItem,
   removeAnimeFromList,
+  addAnimeToList,
+  updateAnimeInList
 } from "@/services/supabase-service"
 import { formatLabels, statusLabels } from "@/types/anime"
 import { AddToListModal } from "./anime/AnimeAddToListModal"
 import { ProgressModal } from "./anime/AnimeProgressModal"
 import { ScoreModal } from "./anime/AnimeScoreModal"
 import { AnimeRemoveDialog } from "./anime/banner/AnimeRemoveDialog"
+import { useAuth } from "@/hooks/useAuth"
 
 interface AnimeBannerProps {
   anime: AnimeMedia
 }
 
 export function AnimeBanner({ anime }: AnimeBannerProps) {
+  const { user } = useAuth();
   const [inUserList, setInUserList] = useState<AnimeListItem | null>(null)
   const [showListModal, setShowListModal] = useState(false)
   const [showProgressModal, setShowProgressModal] = useState(false)
@@ -29,12 +33,69 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
 
   useEffect(() => {
     async function loadListStatus() {
-      if (!anime.id) return
+      if (!anime.id || !user) return
       const item = await checkAnimeInUserList(anime.id)
       setInUserList(item)
     }
     loadListStatus()
-  }, [anime.id])
+  }, [anime.id, user])
+
+  const handleUpdateItem = async (newStatus: AnimeListItem["status"] | null, newProgress?: number, newScore?: number) => {
+    try {
+      if (!user) {
+        toast("Accesso richiesto", { 
+          description: "Devi accedere per modificare la tua lista",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!inUserList && newStatus) {
+        // Aggiungiamo l'anime con tutti i dettagli necessari
+        const title = anime.title.userPreferred || anime.title.romaji || anime.title.english || anime.title.native;
+        const coverImage = anime.coverImage?.large || anime.coverImage?.medium || "";
+        const format = anime.format || "";
+
+        const [data] = await addAnimeToList(
+          anime.id, 
+          newStatus, 
+          newProgress !== undefined ? newProgress : 0, 
+          newScore !== undefined ? newScore : 0,
+          "",
+          title,
+          coverImage,
+          format
+        );
+        setInUserList(data);
+      } else if (inUserList) {
+        const updates: Record<string, any> = {};
+        
+        if (newStatus) updates.status = newStatus;
+        if (newProgress !== undefined) updates.progress = newProgress;
+        if (newScore !== undefined) updates.score = newScore;
+        
+        // Assicuriamoci che anche i metadati vengano aggiornati se non sono presenti
+        if (!inUserList.title) {
+          updates.title = anime.title.userPreferred || anime.title.romaji || anime.title.english || anime.title.native;
+        }
+        if (!inUserList.cover_image) {
+          updates.cover_image = anime.coverImage?.large || anime.coverImage?.medium || "";
+        }
+        if (!inUserList.format) {
+          updates.format = anime.format || "";
+        }
+        
+        const [data] = await updateAnimeInList(inUserList.id, updates);
+        setInUserList(data);
+      }
+    } catch (error) {
+      console.error("Errore nell'aggiornamento dello stato:", error);
+      toast("Errore", {
+        description: "Non è stato possibile aggiornare lo stato.",
+        variant: "destructive"
+      });
+    }
+  }
 
   const handleRemoveAnime = async () => {
     if (!inUserList) return
@@ -127,11 +188,12 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
         initialProgress={inUserList?.progress ?? 0}
         open={showProgressModal}
         onClose={() => setShowProgressModal(false)}
-        onUpdate={(newProgress) =>
+        onUpdate={(newProgress) => {
+          handleUpdateItem(null, newProgress);
           setInUserList((prev) =>
             prev ? { ...prev, progress: newProgress } : prev
-          )
-        }
+          );
+        }}
       />
 
       <ScoreModal
@@ -139,11 +201,12 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
         initialScore={inUserList?.score ?? null}
         open={showScoreModal}
         onClose={() => setShowScoreModal(false)}
-        onUpdate={(newScore) =>
+        onUpdate={(newScore) => {
+          handleUpdateItem(null, undefined, newScore);
           setInUserList((prev) =>
             prev ? { ...prev, score: newScore } : prev
-          )
-        }
+          );
+        }}
       />
 
       <AnimeRemoveDialog

@@ -52,22 +52,30 @@ export const AnimeAddToList = ({ anime, inUserList, onListUpdate }: AnimeAddToLi
 
     try {
       setIsSubmitting(true);
+      
+      // Assicuriamoci di passare tutte le informazioni necessarie
+      const title = anime.title.userPreferred || anime.title.romaji || anime.title.english || anime.title.native;
+      const coverImage = anime.coverImage?.large || anime.coverImage?.medium || "";
+      const format = anime.format || "";
+      
       await addAnimeToList(
         anime.id,
         status,
         parseInt(progress) || 0,
         parseInt(score) || 0,
         notes,
-        anime.title.userPreferred || anime.title.romaji,
-        anime.coverImage.large,
-        anime.format
+        title,  // Passa esplicitamente il titolo
+        coverImage,  // Passa esplicitamente l'immagine di copertina
+        format  // Passa esplicitamente il formato
       );
       
       toast(inUserList ? "Aggiornato con successo" : "Aggiunto con successo", {
-        description: `${anime.title.userPreferred || anime.title.romaji} è stato ${inUserList ? 'aggiornato nella' : 'aggiunto alla'} tua lista.`
+        description: `${title} è stato ${inUserList ? 'aggiornato nella' : 'aggiunto alla'} tua lista.`
       });
       
       setIsDialogOpen(false);
+      
+      // Aggiorna la lista dopo l'operazione
       try {
         const updated = await checkAnimeInUserList(anime.id);
         onListUpdate(updated);
@@ -77,7 +85,6 @@ export const AnimeAddToList = ({ anime, inUserList, onListUpdate }: AnimeAddToLi
     } catch (error: any) {
       console.error("Errore nell'aggiunta dell'anime alla lista:", error);
 
-      // Messaggio personalizzato per l'errore di tabella mancante
       if (error.message && error.message.includes("anime_list non esiste")) {
         toast("Configurazione richiesta", {
           description: "La tabella anime_list non esiste nel tuo database Supabase. Controlla la console per maggiori informazioni.",
