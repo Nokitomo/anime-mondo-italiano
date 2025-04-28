@@ -105,10 +105,28 @@ export function AnimeBanner({ anime }: AnimeBannerProps) {
 
   return (
     <div className="relative bg-black text-white overflow-hidden">
-      <AnimeBannerMedia anime={anime} />
+      <div className="absolute inset-0 opacity-20 hidden sm:block">
+        {anime.bannerImage && (
+          <>
+            <img
+              src={anime.bannerImage}
+              alt={anime.title.romaji}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+          </>
+        )}
+      </div>
+      
       <div className="container relative z-10 py-6 px-4 sm:px-6 md:py-12">
         <div className="flex flex-col items-center text-center gap-4 md:flex-row md:items-start md:text-left">
-          <AnimeBannerMedia anime={anime} />
+          <div className="w-24 sm:w-32 md:w-48 flex-shrink-0">
+            <img
+              src={anime.coverImage.large}
+              alt={anime.title.romaji}
+              className="w-full rounded-md shadow-lg"
+            />
+          </div>
           <div className="flex-1 space-y-2">
             <AnimeBannerInfo 
               anime={anime} 
