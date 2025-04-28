@@ -21,9 +21,9 @@ const Home = () => {
         setLoading(true);
         const data = await getTrendingAnime();
         
-        setTrendingAnime(data.data.trending.media);
-        setPopularAnime(data.data.popular.media);
-        setUpcomingAnime(data.data.upcoming.media);
+        setTrendingAnime(data.trending.media);
+        setPopularAnime(data.popular.media);
+        setUpcomingAnime(data.upcoming.media);
         
         setLoading(false);
       } catch (err) {

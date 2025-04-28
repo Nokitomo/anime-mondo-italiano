@@ -5,5 +5,5 @@ import type { TrendingAnimeResponse } from '@/types/anime';
 
 export const getTrendingAnime = async (): Promise<TrendingAnimeResponse> => {
   const response = await queryAnilistAPI<TrendingAnimeResponse>(ANIME_TRENDING_QUERY);
-  return response.data;
+  return response;
 };

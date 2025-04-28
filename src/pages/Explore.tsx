@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { AnimeCard, AnimeCardSkeleton } from "@/components/AnimeCard";
 import { useQuery } from "@tanstack/react-query";
@@ -31,8 +30,8 @@ const Explore = () => {
 
   // Effetto per gestire hasMore quando i dati cambiano
   useEffect(() => {
-    if (data?.data?.trending?.media) {
-      setHasMore(data.data.trending.media.length >= 24);
+    if (data?.trending?.media) {
+      setHasMore(data.trending.media.length >= 24);
     }
   }, [data]);
 
@@ -66,9 +65,9 @@ const Explore = () => {
   }
 
   // Sicurezza per evitare riferimenti a dati undefined
-  const trending = data?.data?.trending?.media || [];
-  const popular = data?.data?.popular?.media || [];
-  const upcoming = data?.data?.upcoming?.media || [];
+  const trending = data?.trending?.media || [];
+  const popular = data?.popular?.media || [];
+  const upcoming = data?.upcoming?.media || [];
 
   return (
     <div className="container py-8">

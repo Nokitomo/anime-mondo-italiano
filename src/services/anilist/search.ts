@@ -15,5 +15,5 @@ export const searchAnime = async (
     perPage,
     type,
   });
-  return response.data;
+  return response;
 };

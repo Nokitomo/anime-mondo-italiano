@@ -28,7 +28,7 @@ const SearchPage = () => {
       const currentPage = resetResults ? 1 : page;
       const response = await searchAnime(searchTerm, currentPage, 24, type);
       
-      const newResults = response.data.Page.media;
+      const newResults = response.Page.media;
       
       if (resetResults) {
         setResults(newResults);
@@ -38,7 +38,7 @@ const SearchPage = () => {
         setPage(currentPage + 1);
       }
       
-      setHasNextPage(response.data.Page.pageInfo.hasNextPage);
+      setHasNextPage(response.Page.pageInfo.hasNextPage);
       setSearched(true);
     } catch (err) {
       console.error("Errore nella ricerca:", err);
