@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { translateText } from "@/services/translation-service";
 import { AnimeBanner } from "@/components/AnimeBanner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getAnimeDetails } from "@/services/anilist-api";
+import { getAnimeDetails } from "@/services/anilist";
 import { relationLabels, AnimeMedia } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { checkAnimeInUserList } from "@/services/supabase-service";

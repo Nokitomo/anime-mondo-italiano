@@ -9,10 +9,11 @@ export const searchAnime = async (
   perPage = 20,
   type: "ANIME" | "MANGA" = "ANIME"
 ): Promise<AnimeSearchResponse> => {
-  return queryAnilistAPI<AnimeSearchResponse>(ANIME_SEARCH_QUERY, {
+  const response = await queryAnilistAPI<AnimeSearchResponse>(ANIME_SEARCH_QUERY, {
     search,
     page,
     perPage,
     type,
   });
+  return response.data;
 };

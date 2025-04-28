@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { AnimeCard, AnimeCardSkeleton } from "@/components/AnimeCard";
 import { useQuery } from "@tanstack/react-query";
-import { getTrendingAnime } from "@/services/anilist-api";
+import { getTrendingAnime } from "@/services/anilist";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";

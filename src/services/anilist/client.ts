@@ -3,10 +3,9 @@ import { ANILIST_API_URL } from './constants';
 
 interface GraphQLResponse<T> {
   data: T;
-  errors?: Array<{ message: string }>;
 }
 
-export async function queryAnilistAPI<T>(query: string, variables?: Record<string, any>): Promise<T> {
+export async function queryAnilistAPI<T>(query: string, variables?: Record<string, any>): Promise<GraphQLResponse<T>> {
   try {
     const response = await fetch(ANILIST_API_URL, {
       method: "POST",

@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getTrendingAnime } from "@/services/anilist-api";
+import { getTrendingAnime } from "@/services/anilist";
 import { AnimeCard, AnimeCardSkeleton } from "@/components/AnimeCard";
 import { Button } from "@/components/ui/button";
 import { AnimeMedia } from "@/types/anime";

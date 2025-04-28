@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { searchAnime } from "@/services/anilist-api";
+import { searchAnime } from "@/services/anilist";
 import { AnimeCard, AnimeCardSkeleton } from "@/components/AnimeCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
