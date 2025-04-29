@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { AnimeCard, AnimeCardSkeleton } from "@/components/AnimeCard";
 import { useQuery } from "@tanstack/react-query";
@@ -8,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import type { AnimeMedia } from "@/types/anime";
 
-const ITEMS_PER_PAGE = 24; // Impostiamo un numero più alto di elementi per pagina
+const ITEMS_PER_PAGE = 24;
 
 const Explore = () => {
   const [page, setPage] = useState({
@@ -58,7 +57,7 @@ const Explore = () => {
     }
   });
 
-  // Effetto per aggiungere i nuovi dati agli array esistenti
+  // Effect to add new data to existing arrays
   useEffect(() => {
     if (!data) return;
     
@@ -68,7 +67,7 @@ const Explore = () => {
       upcoming: page.upcoming === 1 ? data.upcoming.media : [...prev.upcoming, ...data.upcoming.media]
     }));
 
-    // Aggiorna lo stato di hasMore in base alle informazioni sulla paginazione
+    // Update hasMore state based on pagination info
     setHasMore({
       trending: data.trending.pageInfo?.hasNextPage ?? false,
       popular: data.popular.pageInfo?.hasNextPage ?? false,
@@ -83,6 +82,7 @@ const Explore = () => {
   const loadMore = () => {
     if (isFetching) return;
     
+    // Update only the page for the active tab
     setPage(prev => ({
       ...prev,
       [activeTab]: prev[activeTab] + 1
@@ -116,7 +116,7 @@ const Explore = () => {
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-6">Esplora</h1>
       
-      <Tabs defaultValue="trending" className="w-full" onValueChange={handleTabChange}>
+      <Tabs value={activeTab} className="w-full" onValueChange={handleTabChange}>
         <TabsList className="mb-6">
           <TabsTrigger value="trending">In tendenza</TabsTrigger>
           <TabsTrigger value="popular">Popolari</TabsTrigger>
