@@ -24,6 +24,8 @@ const ITEMS_PER_PAGE = 24;
 const Explore = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<AnimeMedia[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [page, setPage] = useState({
     trending: 1,
     popular: 1, 
@@ -108,15 +110,34 @@ const Explore = () => {
     }));
   };
   
-  const handleSearch = () => {
-    if (searchTerm.trim()) {
-      navigate(`/ricerca?q=${encodeURIComponent(searchTerm)}`);
+  // Esegue la ricerca direttamente in questa pagina invece di reindirizzare
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) {
+      setIsSearching(false);
+      return;
+    }
+    
+    setIsSearching(true);
+    try {
+      const response = await searchAnime(searchTerm, 1, 24);
+      setSearchResults(response.Page.media);
+    } catch (error) {
+      console.error("Errore nella ricerca:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante la ricerca.",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleCarouselScroll = (section: "trending" | "popular" | "upcoming", scrollProgress: number) => {
-    // If we're close to the end (95% scrolled) and we haven't triggered loading yet
-    if (scrollProgress > 0.95) {
+  const handleCarouselScroll = (section: "trending" | "popular" | "upcoming", api: any) => {
+    if (!api) return;
+    
+    // Check if we're close to the end of the carousel (last 20% of the scroll)
+    const scrollProgress = api.scrollProgress();
+    
+    if (scrollProgress > 0.8) {
       if (section === "trending" && !trendingEndReached.current && hasMore.trending) {
         trendingEndReached.current = true;
         loadMoreAnime("trending");
@@ -168,34 +189,71 @@ const Explore = () => {
           </Button>
         </div>
       </div>
-      
-      {/* Anime sections with horizontal scrolling */}
-      <div className="space-y-10">
-        {/* Trending Section */}
-        <section>
-          <h2 className="text-2xl font-bold mb-4">Anime in tendenza</h2>
-          {isLoading ? (
+
+      {/* Search Results Section */}
+      {isSearching && (
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold">Risultati per "{searchTerm}"</h2>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                setIsSearching(false);
+                setSearchTerm("");
+              }}
+            >
+              Torna all'esplorazione
+            </Button>
+          </div>
+          
+          {searchResults.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {Array(6).fill(0).map((_, i) => (
-                <AnimeCardSkeleton key={i} />
+              {searchResults.map((anime) => (
+                <AnimeCard key={`search-${anime.id}`} anime={anime} />
               ))}
             </div>
           ) : (
-            <>
+            <p className="text-center py-8 text-muted-foreground">Nessun risultato trovato per "{searchTerm}"</p>
+          )}
+        </section>
+      )}
+      
+      {/* Anime sections with horizontal scrolling */}
+      {!isSearching && (
+        <div className="space-y-10">
+          {/* Trending Section */}
+          <section>
+            <h2 className="text-2xl font-bold mb-4">Anime in tendenza</h2>
+            {isLoading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4">
+                {Array(3).fill(0).map((_, i) => (
+                  <AnimeCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : (
               <Carousel
                 className="w-full"
-                onScrollEnd={() => handleCarouselScroll("trending", 1)}
+                opts={{
+                  align: "start",
+                  dragFree: true
+                }}
+                setApi={(api) => {
+                  api?.on("scroll", () => {
+                    handleCarouselScroll("trending", api);
+                  });
+                }}
               >
                 <CarouselContent>
                   {allItems.trending.map((anime, index) => (
-                    <CarouselItem key={`trending-${anime.id}-${index}`} className="md:basis-1/4 lg:basis-1/6">
+                    <CarouselItem key={`trending-${anime.id}-${index}`} className="basis-1/3 md:basis-1/3 lg:basis-1/3">
                       <div className="p-1">
                         <AnimeCard anime={anime} />
                       </div>
                     </CarouselItem>
                   ))}
                   {isFetching && hasMore.trending && (
-                    <CarouselItem className="md:basis-1/4 lg:basis-1/6">
+                    <CarouselItem className="basis-1/3 md:basis-1/3 lg:basis-1/3">
                       <div className="p-1">
                         <AnimeCardSkeleton />
                       </div>
@@ -215,35 +273,41 @@ const Explore = () => {
                   Hai visto tutti gli anime in tendenza
                 </p>
               )}
-            </>
-          )}
-        </section>
-        
-        {/* Popular Section */}
-        <section>
-          <h2 className="text-2xl font-bold mb-4">Anime popolari</h2>
-          {isLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {Array(6).fill(0).map((_, i) => (
-                <AnimeCardSkeleton key={i} />
-              ))}
-            </div>
-          ) : (
-            <>
+            )}
+          </section>
+          
+          {/* Popular Section */}
+          <section>
+            <h2 className="text-2xl font-bold mb-4">Anime popolari</h2>
+            {isLoading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4">
+                {Array(3).fill(0).map((_, i) => (
+                  <AnimeCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : (
               <Carousel
                 className="w-full"
-                onScrollEnd={() => handleCarouselScroll("popular", 1)}
+                opts={{
+                  align: "start",
+                  dragFree: true
+                }}
+                setApi={(api) => {
+                  api?.on("scroll", () => {
+                    handleCarouselScroll("popular", api);
+                  });
+                }}
               >
                 <CarouselContent>
                   {allItems.popular.map((anime, index) => (
-                    <CarouselItem key={`popular-${anime.id}-${index}`} className="md:basis-1/4 lg:basis-1/6">
+                    <CarouselItem key={`popular-${anime.id}-${index}`} className="basis-1/3 md:basis-1/3 lg:basis-1/3">
                       <div className="p-1">
                         <AnimeCard anime={anime} />
                       </div>
                     </CarouselItem>
                   ))}
                   {isFetching && hasMore.popular && (
-                    <CarouselItem className="md:basis-1/4 lg:basis-1/6">
+                    <CarouselItem className="basis-1/3 md:basis-1/3 lg:basis-1/3">
                       <div className="p-1">
                         <AnimeCardSkeleton />
                       </div>
@@ -263,35 +327,41 @@ const Explore = () => {
                   Hai visto tutti gli anime popolari
                 </p>
               )}
-            </>
-          )}
-        </section>
-        
-        {/* Upcoming Section */}
-        <section>
-          <h2 className="text-2xl font-bold mb-4">Anime in arrivo</h2>
-          {isLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {Array(6).fill(0).map((_, i) => (
-                <AnimeCardSkeleton key={i} />
-              ))}
-            </div>
-          ) : (
-            <>
+            )}
+          </section>
+          
+          {/* Upcoming Section */}
+          <section>
+            <h2 className="text-2xl font-bold mb-4">Anime in arrivo</h2>
+            {isLoading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4">
+                {Array(3).fill(0).map((_, i) => (
+                  <AnimeCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : (
               <Carousel
                 className="w-full"
-                onScrollEnd={() => handleCarouselScroll("upcoming", 1)}
+                opts={{
+                  align: "start",
+                  dragFree: true
+                }}
+                setApi={(api) => {
+                  api?.on("scroll", () => {
+                    handleCarouselScroll("upcoming", api);
+                  });
+                }}
               >
                 <CarouselContent>
                   {allItems.upcoming.map((anime, index) => (
-                    <CarouselItem key={`upcoming-${anime.id}-${index}`} className="md:basis-1/4 lg:basis-1/6">
+                    <CarouselItem key={`upcoming-${anime.id}-${index}`} className="basis-1/3 md:basis-1/3 lg:basis-1/3">
                       <div className="p-1">
                         <AnimeCard anime={anime} />
                       </div>
                     </CarouselItem>
                   ))}
                   {isFetching && hasMore.upcoming && (
-                    <CarouselItem className="md:basis-1/4 lg:basis-1/6">
+                    <CarouselItem className="basis-1/3 md:basis-1/3 lg:basis-1/3">
                       <div className="p-1">
                         <AnimeCardSkeleton />
                       </div>
@@ -311,10 +381,10 @@ const Explore = () => {
                   Hai visto tutti gli anime in arrivo
                 </p>
               )}
-            </>
-          )}
-        </section>
-      </div>
+            )}
+          </section>
+        </div>
+      )}
     </div>
   );
 };
