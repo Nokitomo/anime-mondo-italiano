@@ -4,7 +4,7 @@ import { AnimeBannerMedia } from "./AnimeBannerMedia";
 import { AnimeBannerContent } from "./AnimeBannerContent";
 import { AnimeBannerModals } from "./AnimeBannerModals";
 import { AnimeListItem } from "@/services/supabase-service";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   checkAnimeInUserList,
@@ -30,15 +30,24 @@ export function AnimeBannerContainer({ anime, onUpdateNotes }: AnimeBannerContai
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [nextEpisodeFormatted, setNextEpisodeFormatted] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-    async function loadListStatus() {
-      if (!anime.id || !user) return;
+  // Funzione per ricaricare lo stato dell'anime nella lista utente
+  const refreshListStatus = useCallback(async () => {
+    if (!anime.id || !user) return;
+    try {
       const item = await checkAnimeInUserList(anime.id);
       setInUserList(item);
+      return item;
+    } catch (error) {
+      console.error("Errore nel caricare lo stato dell'anime:", error);
+      return null;
     }
-    loadListStatus();
   }, [anime.id, user]);
+
+  useEffect(() => {
+    refreshListStatus();
+  }, [refreshListStatus]);
   
   useEffect(() => {
     if (anime.nextAiringEpisode) {
@@ -65,7 +74,11 @@ export function AnimeBannerContainer({ anime, onUpdateNotes }: AnimeBannerContai
   }, [anime.nextAiringEpisode]);
 
   const handleUpdateItem = async (newStatus: AnimeListItem["status"] | null, newProgress?: number, newScore?: number) => {
+    if (isProcessing) return;
+    
     try {
+      setIsProcessing(true);
+      
       if (!user) {
         toast({
           title: "Accesso richiesto",
@@ -118,18 +131,29 @@ export function AnimeBannerContainer({ anime, onUpdateNotes }: AnimeBannerContai
         description: "Non è stato possibile aggiornare lo stato.",
         variant: "destructive"
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handleRemoveAnime = async () => {
+    if (isProcessing) return;
+    
     try {
+      setIsProcessing(true);
       if (!inUserList) return;
+      
       await removeAnimeFromList(inUserList.id);
-      setInUserList(null);
+      
       toast({
         title: "Anime rimosso dalla lista"
       });
-      setShowRemoveDialog(false);
+      
+      setInUserList(null);
+      
+      if (onUpdateNotes) {
+        onUpdateNotes({ ...inUserList, notes: "" });
+      }
     } catch (error) {
       console.error("Errore nella rimozione dell'anime:", error);
       toast({
@@ -137,6 +161,9 @@ export function AnimeBannerContainer({ anime, onUpdateNotes }: AnimeBannerContai
         description: "Non è stato possibile rimuovere l'anime dalla lista.",
         variant: "destructive"
       });
+    } finally {
+      setShowRemoveDialog(false);
+      setIsProcessing(false);
     }
   };
 

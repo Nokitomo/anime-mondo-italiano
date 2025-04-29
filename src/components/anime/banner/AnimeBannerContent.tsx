@@ -39,7 +39,7 @@ export function AnimeBannerContent({
           className="w-full rounded-md shadow-lg"
         />
       </div>
-      <div className="flex-1 space-y-4 w-full text-center md:text-left">
+      <div className="flex-1 space-y-4 w-full text-center md:text-left relative">
         <div className="flex flex-col md:flex-row justify-between items-start">
           <AnimeBannerInfo 
             anime={anime} 
@@ -49,7 +49,7 @@ export function AnimeBannerContent({
           />
           
           {inUserList && (
-            <div className="mt-4 md:mt-0">
+            <div className="absolute top-0 right-0">
               <AnimeBannerActions 
                 onRemoveClick={onShowRemoveDialog} 
                 onEditNotes={onShowNotesModal}

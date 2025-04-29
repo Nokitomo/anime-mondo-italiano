@@ -16,10 +16,10 @@ interface AnimeBannerActionsProps {
 export function AnimeBannerActions({ onRemoveClick, onEditNotes }: AnimeBannerActionsProps) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="h-8 w-8 flex items-center justify-center rounded-full bg-gray-800/70 hover:bg-gray-700">
+      <DropdownMenuTrigger className="h-8 w-8 flex items-center justify-center rounded-full bg-gray-800/70 hover:bg-gray-700 focus:outline-none">
         <MoreHorizontal className="h-5 w-5" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bg-popover/95 backdrop-blur-sm border-gray-700">
+      <DropdownMenuContent align="end" className="bg-popover/95 backdrop-blur-sm border-gray-700 z-50">
         <DropdownMenuItem onClick={onEditNotes} className="cursor-pointer">
           <PenLine className="h-4 w-4 mr-2" />
           Modifica note

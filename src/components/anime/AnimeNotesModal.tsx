@@ -34,6 +34,7 @@ export function AnimeNotesModal({ open, onOpenChange, inUserList, onUpdate }: An
           title: "Note aggiornate",
           description: "Le note sono state salvate con successo"
         });
+        // Chiudiamo il modal prima per prevenire blocchi dell'interfaccia
         onOpenChange(false);
       }
     } catch (error) {
@@ -49,11 +50,17 @@ export function AnimeNotesModal({ open, onOpenChange, inUserList, onUpdate }: An
   };
   
   const handleCancel = () => {
+    // Reset notes to prevent UI glitches
+    setNotes(inUserList.notes || "");
     onOpenChange(false);
   };
   
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isSubmitting) {
+        onOpenChange(isOpen);
+      }
+    }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Modifica note</DialogTitle>
@@ -65,6 +72,7 @@ export function AnimeNotesModal({ open, onOpenChange, inUserList, onUpdate }: An
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Scrivi le tue note qui..."
             className="min-h-[150px]"
+            disabled={isSubmitting}
           />
           
           <div className="flex justify-end gap-2">
@@ -72,6 +80,7 @@ export function AnimeNotesModal({ open, onOpenChange, inUserList, onUpdate }: An
               type="button"
               variant="outline"
               onClick={handleCancel}
+              disabled={isSubmitting}
             >
               Annulla
             </Button>
