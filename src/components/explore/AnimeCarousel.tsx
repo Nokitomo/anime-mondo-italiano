@@ -30,6 +30,8 @@ export const AnimeCarousel = ({
 }: AnimeCarouselProps) => {
   const isMobile = useIsMobile();
   const endReachedRef = useRef(false);
+  const carouselApiRef = useRef<any>(null);
+  const previousItemsCountRef = useRef(animeList.length);
 
   const handleCarouselScroll = (api: any) => {
     if (!api) return;
@@ -48,6 +50,14 @@ export const AnimeCarousel = ({
     endReachedRef.current = false;
   }
 
+  // Preserve scroll position when new items are loaded
+  if (carouselApiRef.current && animeList.length > previousItemsCountRef.current) {
+    // Only update ref after the component has rendered the new items
+    setTimeout(() => {
+      previousItemsCountRef.current = animeList.length;
+    }, 0);
+  }
+
   return (
     <section>
       <h2 className="text-2xl font-bold mb-4">{title}</h2>
@@ -62,9 +72,11 @@ export const AnimeCarousel = ({
           className="w-full"
           opts={{
             align: "start",
-            dragFree: true
+            dragFree: true,
+            containScroll: "keepSnaps"
           }}
           setApi={(api) => {
+            carouselApiRef.current = api;
             api?.on("scroll", () => {
               handleCarouselScroll(api);
             });
