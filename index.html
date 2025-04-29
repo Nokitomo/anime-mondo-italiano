@@ -48,13 +48,12 @@
       "url": "https://tuodominio.it/"
     }
     </script>
-
-    <!-- Application Entry -->
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
   </head>
   <body>
-    <!-- Lovable Script - Fixed placement at end of body -->
+    <!-- Application Entry -->
+    <div id="root"></div>
+    <!-- Lovable Script - Correct placement before application script -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
