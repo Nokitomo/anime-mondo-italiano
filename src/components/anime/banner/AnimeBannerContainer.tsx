@@ -34,7 +34,7 @@ export function AnimeBannerContainer({ anime, onUpdateNotes }: AnimeBannerContai
 
   // Funzione per ricaricare lo stato dell'anime nella lista utente
   const refreshListStatus = useCallback(async () => {
-    if (!anime.id || !user) return;
+    if (!anime.id || !user) return null;
     try {
       const item = await checkAnimeInUserList(anime.id);
       setInUserList(item);
@@ -145,15 +145,20 @@ export function AnimeBannerContainer({ anime, onUpdateNotes }: AnimeBannerContai
       
       await removeAnimeFromList(inUserList.id);
       
+      // Close dialog first before updating state to prevent UI freeze
+      setShowRemoveDialog(false);
+      
       toast({
         title: "Anime rimosso dalla lista"
       });
       
-      setInUserList(null);
-      
+      // Update parent component state
       if (onUpdateNotes) {
         onUpdateNotes({ ...inUserList, notes: "" });
       }
+      
+      // Update local state
+      setInUserList(null);
     } catch (error) {
       console.error("Errore nella rimozione dell'anime:", error);
       toast({
@@ -162,13 +167,15 @@ export function AnimeBannerContainer({ anime, onUpdateNotes }: AnimeBannerContai
         variant: "destructive"
       });
     } finally {
-      setShowRemoveDialog(false);
       setIsProcessing(false);
     }
   };
 
   const handleNoteUpdate = (updatedAnime: AnimeListItem) => {
+    // Update local state
     setInUserList(updatedAnime);
+    
+    // Notify parent component of the update
     if (onUpdateNotes) {
       onUpdateNotes(updatedAnime);
     }
@@ -186,11 +193,12 @@ export function AnimeBannerContainer({ anime, onUpdateNotes }: AnimeBannerContai
           studios={studios}
           inUserList={inUserList}
           nextEpisodeFormatted={nextEpisodeFormatted}
-          onShowListModal={() => setShowListModal(true)}
-          onShowProgressModal={() => setShowProgressModal(true)}
-          onShowScoreModal={() => setShowScoreModal(true)}
-          onShowRemoveDialog={() => setShowRemoveDialog(true)}
-          onShowNotesModal={() => setShowNotesModal(true)}
+          onShowListModal={() => !isProcessing && setShowListModal(true)}
+          onShowProgressModal={() => !isProcessing && setShowProgressModal(true)}
+          onShowScoreModal={() => !isProcessing && setShowScoreModal(true)}
+          onShowRemoveDialog={() => !isProcessing && setShowRemoveDialog(true)}
+          onShowNotesModal={() => !isProcessing && setShowNotesModal(true)}
+          isProcessing={isProcessing}
         />
       </div>
       
@@ -211,6 +219,7 @@ export function AnimeBannerContainer({ anime, onUpdateNotes }: AnimeBannerContai
         showRemoveDialog={showRemoveDialog}
         setShowRemoveDialog={setShowRemoveDialog}
         onConfirmRemove={handleRemoveAnime}
+        isProcessing={isProcessing}
       />
       
       {inUserList && (

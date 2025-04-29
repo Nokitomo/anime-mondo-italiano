@@ -15,6 +15,7 @@ interface AnimeBannerContentProps {
   onShowScoreModal: () => void;
   onShowRemoveDialog: () => void;
   onShowNotesModal: () => void;
+  isProcessing: boolean;
 }
 
 export function AnimeBannerContent({
@@ -26,7 +27,8 @@ export function AnimeBannerContent({
   onShowProgressModal,
   onShowScoreModal,
   onShowRemoveDialog,
-  onShowNotesModal
+  onShowNotesModal,
+  isProcessing
 }: AnimeBannerContentProps) {
   const startDate = `${anime.startDate?.year || "?"}`;
   
@@ -39,8 +41,8 @@ export function AnimeBannerContent({
           className="w-full rounded-md shadow-lg"
         />
       </div>
-      <div className="flex-1 space-y-4 w-full text-center md:text-left relative">
-        <div className="flex flex-col md:flex-row justify-between items-start">
+      <div className="flex-1 space-y-4 w-full text-center md:text-left">
+        <div className="flex flex-col md:flex-row justify-between items-start relative">
           <AnimeBannerInfo 
             anime={anime} 
             studios={studios}
@@ -53,6 +55,7 @@ export function AnimeBannerContent({
               <AnimeBannerActions 
                 onRemoveClick={onShowRemoveDialog} 
                 onEditNotes={onShowNotesModal}
+                isProcessing={isProcessing}
               />
             </div>
           )}

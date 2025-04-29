@@ -1,5 +1,5 @@
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
@@ -25,16 +25,19 @@ export function AnimeNotesModal({ open, onOpenChange, inUserList, onUpdate }: An
   }, [open, inUserList.notes]);
   
   const handleSubmit = async () => {
+    if (isSubmitting) return;
+    
     try {
       setIsSubmitting(true);
       const [result] = await updateAnimeInList(inUserList.id, { notes });
       if (result) {
+        // Update notes state in parent component
         onUpdate(result);
         toast({
           title: "Note aggiornate",
           description: "Le note sono state salvate con successo"
         });
-        // Chiudiamo il modal prima per prevenire blocchi dell'interfaccia
+        // Close modal only after successful update
         onOpenChange(false);
       }
     } catch (error) {
@@ -50,20 +53,28 @@ export function AnimeNotesModal({ open, onOpenChange, inUserList, onUpdate }: An
   };
   
   const handleCancel = () => {
-    // Reset notes to prevent UI glitches
+    if (isSubmitting) return;
+    
+    // Reset notes and close modal
     setNotes(inUserList.notes || "");
     onOpenChange(false);
   };
   
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      if (!isSubmitting) {
-        onOpenChange(isOpen);
-      }
-    }}>
+    <Dialog 
+      open={open} 
+      onOpenChange={(isOpen) => {
+        if (!isSubmitting) {
+          onOpenChange(isOpen);
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Modifica note</DialogTitle>
+          <DialogDescription>
+            Scrivi qui le tue considerazioni e annotazioni personali su questo anime.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">

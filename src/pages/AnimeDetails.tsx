@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { translateText } from "@/services/translation-service";
 import { AnimeBanner } from "@/components/AnimeBanner";
@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAnimeDetails } from "@/services/anilist";
 import { relationLabels, AnimeMedia } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
-import { checkAnimeInUserList } from "@/services/supabase-service";
+import { checkAnimeInUserList, AnimeListItem } from "@/services/supabase-service";
 import { AnimeOverview } from "@/components/anime/details/AnimeOverview";
 import { AnimeCharacters } from "@/components/anime/details/AnimeCharacters";
 import { AnimeStaff } from "@/components/anime/details/AnimeStaff";
@@ -25,6 +25,22 @@ const AnimeDetailsPage = () => {
   
   const anime = data?.Media;
   
+  const loadUserNotes = useCallback(async () => {
+    if (anime) {
+      try {
+        const listItem = await checkAnimeInUserList(anime.id);
+        if (listItem?.notes) {
+          setUserNotes(listItem.notes);
+        } else {
+          setUserNotes("");
+        }
+      } catch (err) {
+        console.error("Errore nel caricamento delle note:", err);
+        setUserNotes("");
+      }
+    }
+  }, [anime]);
+  
   useEffect(() => {
     const fetchAnimeData = async () => {
       if (anime) {
@@ -34,12 +50,7 @@ const AnimeDetailsPage = () => {
             setTranslatedDescription(translated);
           }
           
-          const listItem = await checkAnimeInUserList(anime.id);
-          if (listItem?.notes) {
-            setUserNotes(listItem.notes);
-          } else {
-            setUserNotes("");
-          }
+          await loadUserNotes();
         } catch (err) {
           console.error("Errore nel caricamento dei dati:", err);
         }
@@ -47,7 +58,15 @@ const AnimeDetailsPage = () => {
     };
     
     fetchAnimeData();
-  }, [anime]);
+  }, [anime, loadUserNotes]);
+  
+  const handleUpdateNotes = (updatedAnime: AnimeListItem) => {
+    if (updatedAnime.notes !== undefined) {
+      setUserNotes(updatedAnime.notes);
+    } else {
+      setUserNotes("");
+    }
+  };
   
   if (isLoading) {
     return (
@@ -94,12 +113,6 @@ const AnimeDetailsPage = () => {
     node: rel.node as AnimeMedia,
     label: relationLabels[rel.relationType] || rel.relationType
   }));
-
-  const handleUpdateNotes = (updatedAnime: any) => {
-    if (updatedAnime.notes !== undefined) {
-      setUserNotes(updatedAnime.notes);
-    }
-  };
   
   return (
     <div>
