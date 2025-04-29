@@ -1,5 +1,5 @@
 
-import { AnimeBannerInfo } from "./AnimeBannerInfo";
+import { AnimeBannerInfo } from "./info/AnimeBannerInfo";
 import { AnimeBannerControls } from "./AnimeBannerControls";
 import { AnimeMedia } from "@/types/anime";
 import { AnimeListItem } from "@/services/supabase-service";
