@@ -41,7 +41,7 @@ export function AnimeBannerContent({
         
         {/* Actions menu on mobile, positioned in the top corner of the cover */}
         {inUserList && (
-          <div className="absolute top-1 right-1 sm:hidden">
+          <div className="absolute top-1 right-1 sm:hidden z-10">
             <AnimeBannerActions 
               onRemoveClick={onShowRemoveDialog}
               onEditNotes={onShowNotesModal} 

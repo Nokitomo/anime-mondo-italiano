@@ -20,9 +20,9 @@ export function AnimeNotesModal({ open, onOpenChange, inUserList, onUpdate }: An
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
-      const result = await updateAnimeInList(inUserList.id, { notes });
-      if (result && result[0]) {
-        onUpdate(result[0]);
+      const [result] = await updateAnimeInList(inUserList.id, { notes });
+      if (result) {
+        onUpdate(result);
         toast({
           title: "Note aggiornate",
           description: "Le note sono state salvate con successo"
