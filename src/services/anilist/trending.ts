@@ -31,7 +31,7 @@ export const getTrendingAnime = async (options: TrendingAnimeOptions = {}): Prom
   // Filtra gli anime in arrivo per assicurarsi che siano effettivamente futuri
   const now = new Date();
   const uniqueUpcoming = removeDuplicates(response.upcoming.media).filter(anime => {
-    // Controlla se l'anime ha un episodio in arrivo
+    // Controlla se l'anime ha un episodio o film in arrivo
     if (anime.nextAiringEpisode) {
       return true;
     }
