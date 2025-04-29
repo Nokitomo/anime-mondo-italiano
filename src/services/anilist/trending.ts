@@ -28,26 +28,42 @@ export const getTrendingAnime = async (options: TrendingAnimeOptions = {}): Prom
   const uniqueTrending = removeDuplicates(response.trending.media);
   const uniquePopular = removeDuplicates(response.popular.media);
   
-  // Filtra gli anime in arrivo per assicurarsi che siano effettivamente futuri
+  // Less restrictive filter for upcoming anime to ensure we get enough results
   const now = new Date();
   const uniqueUpcoming = removeDuplicates(response.upcoming.media).filter(anime => {
-    // Controlla se l'anime ha un episodio o film in arrivo
+    // Include anime with future episodes
     if (anime.nextAiringEpisode) {
       return true;
     }
     
-    // Se l'anime ha una data di inizio futura
-    if (anime.startDate && anime.startDate.year) {
-      const startDate = new Date(
-        anime.startDate.year, 
-        (anime.startDate.month || 1) - 1, 
-        anime.startDate.day || 1
-      );
-      return startDate > now;
+    // Include anime with NOT_YET_RELEASED status
+    if (anime.status === "NOT_YET_RELEASED") {
+      return true;
     }
     
-    // Se lo status è "NOT_YET_RELEASED"
-    return anime.status === "NOT_YET_RELEASED";
+    // Include anime with future start dates if available
+    if (anime.startDate && anime.startDate.year) {
+      // Only filter by year if it's this year or future
+      if (anime.startDate.year > now.getFullYear()) {
+        return true;
+      }
+      
+      // For same year, check if month/day is in future if available
+      if (anime.startDate.year === now.getFullYear()) {
+        // If month is specified and is future
+        if (anime.startDate.month && anime.startDate.month > (now.getMonth() + 1)) {
+          return true;
+        }
+        
+        // If month is current month but day is in future
+        if (anime.startDate.month === (now.getMonth() + 1) && 
+            anime.startDate.day && anime.startDate.day >= now.getDate()) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
   });
   
   return {
