@@ -66,18 +66,19 @@ export const getTrendingAnime = async (options: TrendingAnimeOptions = {}): Prom
     return false;
   });
   
+  // Limit to exactly 20 items per section if more are returned
   return {
     trending: {
       ...response.trending,
-      media: uniqueTrending
+      media: uniqueTrending.slice(0, 20)
     },
     popular: {
       ...response.popular,
-      media: uniquePopular
+      media: uniquePopular.slice(0, 20)
     },
     upcoming: {
       ...response.upcoming,
-      media: uniqueUpcoming
+      media: uniqueUpcoming.slice(0, 20)
     }
   };
 };

@@ -1,4 +1,3 @@
-
 import { AnimeMedia } from "@/types/anime";
 import { AnimeBannerMedia } from "./AnimeBannerMedia";
 import { AnimeBannerContent } from "./AnimeBannerContent";

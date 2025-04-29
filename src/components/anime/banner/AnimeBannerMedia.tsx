@@ -18,13 +18,7 @@ export function AnimeBannerMedia({ anime }: AnimeBannerMediaProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
         </div>
       )}
-      <div className="w-24 sm:w-32 md:w-48 flex-shrink-0">
-        <img
-          src={anime.coverImage.large}
-          alt={anime.title.romaji}
-          className="w-full rounded-md shadow-lg"
-        />
-      </div>
+      {/* Rimuoviamo l'immagine di copertina da qui poiché è già presente in AnimeBannerContent */}
     </>
   );
 }

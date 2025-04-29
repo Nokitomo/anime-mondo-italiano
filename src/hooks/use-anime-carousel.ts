@@ -1,4 +1,3 @@
-
 import { useRef, useEffect } from "react";
 import type { CarouselApi } from "@/hooks/use-carousel";
 
