@@ -2,7 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimeListItem, updateAnimeInList } from "@/services/supabase-service";
 import { toast } from "@/hooks/use-toast";
 
@@ -14,8 +14,15 @@ interface AnimeNotesModalProps {
 }
 
 export function AnimeNotesModal({ open, onOpenChange, inUserList, onUpdate }: AnimeNotesModalProps) {
-  const [notes, setNotes] = useState(inUserList.notes || "");
+  const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Reset notes when the modal opens with current notes
+  useEffect(() => {
+    if (open) {
+      setNotes(inUserList.notes || "");
+    }
+  }, [open, inUserList.notes]);
   
   const handleSubmit = async () => {
     try {
@@ -41,6 +48,10 @@ export function AnimeNotesModal({ open, onOpenChange, inUserList, onUpdate }: An
     }
   };
   
+  const handleCancel = () => {
+    onOpenChange(false);
+  };
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -60,7 +71,7 @@ export function AnimeNotesModal({ open, onOpenChange, inUserList, onUpdate }: An
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={handleCancel}
             >
               Annulla
             </Button>

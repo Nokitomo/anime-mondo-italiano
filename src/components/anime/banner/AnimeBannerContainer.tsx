@@ -18,9 +18,10 @@ import { AnimeNotesModal } from "@/components/anime/AnimeNotesModal";
 
 interface AnimeBannerContainerProps {
   anime: AnimeMedia;
+  onUpdateNotes?: (anime: AnimeListItem) => void;
 }
 
-export function AnimeBannerContainer({ anime }: AnimeBannerContainerProps) {
+export function AnimeBannerContainer({ anime, onUpdateNotes }: AnimeBannerContainerProps) {
   const { user } = useAuth();
   const [inUserList, setInUserList] = useState<AnimeListItem | null>(null);
   const [showListModal, setShowListModal] = useState(false);
@@ -121,13 +122,29 @@ export function AnimeBannerContainer({ anime }: AnimeBannerContainerProps) {
   };
 
   const handleRemoveAnime = async () => {
-    if (!inUserList) return;
-    await removeAnimeFromList(inUserList.id);
-    setInUserList(null);
-    toast({
-      title: "Anime rimosso dalla lista"
-    });
-    setShowRemoveDialog(false);
+    try {
+      if (!inUserList) return;
+      await removeAnimeFromList(inUserList.id);
+      setInUserList(null);
+      toast({
+        title: "Anime rimosso dalla lista"
+      });
+      setShowRemoveDialog(false);
+    } catch (error) {
+      console.error("Errore nella rimozione dell'anime:", error);
+      toast({
+        title: "Errore",
+        description: "Non è stato possibile rimuovere l'anime dalla lista.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleNoteUpdate = (updatedAnime: AnimeListItem) => {
+    setInUserList(updatedAnime);
+    if (onUpdateNotes) {
+      onUpdateNotes(updatedAnime);
+    }
   };
 
   const studios = anime.studios?.nodes.map((s) => s.name).join(", ");
@@ -174,7 +191,7 @@ export function AnimeBannerContainer({ anime }: AnimeBannerContainerProps) {
           open={showNotesModal}
           onOpenChange={setShowNotesModal}
           inUserList={inUserList}
-          onUpdate={setInUserList}
+          onUpdate={handleNoteUpdate}
         />
       )}
     </div>

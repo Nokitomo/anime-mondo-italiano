@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { translateText } from "@/services/translation-service";
@@ -25,28 +26,27 @@ const AnimeDetailsPage = () => {
   const anime = data?.Media;
   
   useEffect(() => {
-    const translateDescription = async () => {
-      if (anime?.description) {
+    const fetchAnimeData = async () => {
+      if (anime) {
         try {
-          const translated = await translateText(anime.description);
-          setTranslatedDescription(translated);
+          if (anime.description) {
+            const translated = await translateText(anime.description);
+            setTranslatedDescription(translated);
+          }
+          
+          const listItem = await checkAnimeInUserList(anime.id);
+          if (listItem?.notes) {
+            setUserNotes(listItem.notes);
+          } else {
+            setUserNotes("");
+          }
         } catch (err) {
-          console.error("Errore nella traduzione della descrizione:", err);
-          setTranslatedDescription(anime.description);
+          console.error("Errore nel caricamento dei dati:", err);
         }
       }
     };
     
-    if (anime) {
-      translateDescription();
-      checkAnimeInUserList(anime.id).then(listItem => {
-        if (listItem?.notes) {
-          setUserNotes(listItem.notes);
-        } else {
-          setUserNotes("");
-        }
-      });
-    }
+    fetchAnimeData();
   }, [anime]);
   
   if (isLoading) {
@@ -94,10 +94,16 @@ const AnimeDetailsPage = () => {
     node: rel.node as AnimeMedia,
     label: relationLabels[rel.relationType] || rel.relationType
   }));
+
+  const handleUpdateNotes = (updatedAnime: any) => {
+    if (updatedAnime.notes !== undefined) {
+      setUserNotes(updatedAnime.notes);
+    }
+  };
   
   return (
     <div>
-      <AnimeBanner anime={anime} />
+      <AnimeBanner anime={anime} onUpdateNotes={handleUpdateNotes} />
       
       {userNotes && (
         <div className="container py-8">

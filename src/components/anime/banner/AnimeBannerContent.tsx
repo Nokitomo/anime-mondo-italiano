@@ -32,22 +32,12 @@ export function AnimeBannerContent({
   
   return (
     <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-      <div className="w-36 sm:w-40 md:w-48 flex-shrink-0 relative">
+      <div className="w-36 sm:w-40 md:w-48 flex-shrink-0">
         <img
           src={anime.coverImage.large}
           alt={anime.title.romaji}
           className="w-full rounded-md shadow-lg"
         />
-        
-        {/* Actions menu on mobile, positioned in the top corner of the cover */}
-        {inUserList && (
-          <div className="absolute top-1 right-1 sm:hidden z-10">
-            <AnimeBannerActions 
-              onRemoveClick={onShowRemoveDialog}
-              onEditNotes={onShowNotesModal} 
-            />
-          </div>
-        )}
       </div>
       <div className="flex-1 space-y-4 w-full text-center md:text-left">
         <div className="flex flex-col md:flex-row justify-between items-start">
@@ -59,7 +49,7 @@ export function AnimeBannerContent({
           />
           
           {inUserList && (
-            <div className="hidden sm:block mt-4 md:mt-0">
+            <div className="mt-4 md:mt-0">
               <AnimeBannerActions 
                 onRemoveClick={onShowRemoveDialog} 
                 onEditNotes={onShowNotesModal}
