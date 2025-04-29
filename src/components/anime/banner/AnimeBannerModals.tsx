@@ -15,7 +15,7 @@ interface AnimeBannerModalsProps {
   setShowProgressModal: (show: boolean) => void;
   setShowScoreModal: (show: boolean) => void;
   onUpdateItem: (status: AnimeListItem["status"] | null, progress?: number, score?: number) => void;
-  setInUserList: (item: AnimeListItem | null) => void;
+  setInUserList: React.Dispatch<React.SetStateAction<AnimeListItem | null>>;
 }
 
 export function AnimeBannerModals({
@@ -47,7 +47,7 @@ export function AnimeBannerModals({
         onClose={() => setShowProgressModal(false)}
         onUpdate={(newProgress) => {
           onUpdateItem(null, newProgress);
-          setInUserList((prev) =>
+          setInUserList(prev => 
             prev ? { ...prev, progress: newProgress } : prev
           );
         }}
@@ -60,7 +60,7 @@ export function AnimeBannerModals({
         onClose={() => setShowScoreModal(false)}
         onUpdate={(newScore) => {
           onUpdateItem(null, undefined, newScore);
-          setInUserList((prev) =>
+          setInUserList(prev => 
             prev ? { ...prev, score: newScore } : prev
           );
         }}
