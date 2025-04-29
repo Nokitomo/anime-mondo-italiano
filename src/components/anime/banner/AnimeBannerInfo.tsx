@@ -13,7 +13,7 @@ interface AnimeBannerInfoProps {
 
 export function AnimeBannerInfo({ anime, studios, startDate, nextEpisodeFormatted }: AnimeBannerInfoProps) {
   return (
-    <>
+    <div className="flex flex-col gap-2">
       <AnimeTitle title={anime.title} />
       <AnimeMetadata anime={anime} nextEpisodeFormatted={nextEpisodeFormatted} />
       
@@ -35,6 +35,6 @@ export function AnimeBannerInfo({ anime, studios, startDate, nextEpisodeFormatte
           </Badge>
         ))}
       </div>
-    </>
+    </div>
   );
 }

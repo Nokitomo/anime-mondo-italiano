@@ -7,7 +7,7 @@ interface AnimeBannerMediaProps {
 
 export function AnimeBannerMedia({ anime }: AnimeBannerMediaProps) {
   return (
-    <>
+    <div className="absolute inset-0 overflow-hidden">
       {anime.bannerImage && (
         <div className="absolute inset-0 opacity-20 hidden sm:block">
           <img
@@ -18,7 +18,6 @@ export function AnimeBannerMedia({ anime }: AnimeBannerMediaProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
         </div>
       )}
-      {/* Rimuoviamo l'immagine di copertina da qui poiché è già presente in AnimeBannerContent */}
-    </>
+    </div>
   );
 }
