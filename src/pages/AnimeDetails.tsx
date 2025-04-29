@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { translateText } from "@/services/translation-service";
@@ -99,18 +100,22 @@ const AnimeDetailsPage = () => {
     <div>
       <AnimeBanner anime={anime} />
       
-      <div className="container py-8">
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Note personali</h2>
-          <div className="prose prose-lg dark:prose-invert max-w-none bg-muted/20 p-4 rounded-md">
-            {userNotes ? (
-              <p className="whitespace-pre-line">{userNotes}</p>
-            ) : (
-              <p className="text-muted-foreground italic">Nessuna nota personale. Puoi aggiungerne una nelle opzioni qui sopra.</p>
-            )}
+      {userNotes && (
+        <div className="container py-8">
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">Note personali</h2>
+            <div className="prose prose-lg dark:prose-invert max-w-none bg-muted/20 p-4 rounded-md">
+              {userNotes ? (
+                <p className="whitespace-pre-line">{userNotes}</p>
+              ) : (
+                <p className="text-muted-foreground italic">Nessuna nota personale. Puoi aggiungerne una nelle opzioni qui sopra.</p>
+              )}
+            </div>
           </div>
         </div>
-        
+      )}
+      
+      <div className="container py-8">
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="overview">Panoramica</TabsTrigger>

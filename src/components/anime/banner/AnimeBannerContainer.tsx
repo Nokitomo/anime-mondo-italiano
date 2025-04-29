@@ -1,3 +1,4 @@
+
 import { AnimeMedia } from "@/types/anime";
 import { AnimeBannerMedia } from "./AnimeBannerMedia";
 import { AnimeBannerContent } from "./AnimeBannerContent";
@@ -13,6 +14,7 @@ import {
 } from "@/services/supabase-service";
 import { toast } from "@/hooks/use-toast";
 import { AnimeRemoveDialog } from "./AnimeRemoveDialog";
+import { AnimeNotesModal } from "@/components/anime/AnimeNotesModal";
 
 interface AnimeBannerContainerProps {
   anime: AnimeMedia;
@@ -25,6 +27,7 @@ export function AnimeBannerContainer({ anime }: AnimeBannerContainerProps) {
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [showScoreModal, setShowScoreModal] = useState(false);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const [showNotesModal, setShowNotesModal] = useState(false);
   const [nextEpisodeFormatted, setNextEpisodeFormatted] = useState<string | null>(null);
 
   useEffect(() => {
@@ -143,6 +146,7 @@ export function AnimeBannerContainer({ anime }: AnimeBannerContainerProps) {
           onShowProgressModal={() => setShowProgressModal(true)}
           onShowScoreModal={() => setShowScoreModal(true)}
           onShowRemoveDialog={() => setShowRemoveDialog(true)}
+          onShowNotesModal={() => setShowNotesModal(true)}
         />
       </div>
       
@@ -164,6 +168,15 @@ export function AnimeBannerContainer({ anime }: AnimeBannerContainerProps) {
         setShowRemoveDialog={setShowRemoveDialog}
         onConfirmRemove={handleRemoveAnime}
       />
+      
+      {inUserList && (
+        <AnimeNotesModal
+          open={showNotesModal}
+          onOpenChange={setShowNotesModal}
+          inUserList={inUserList}
+          onUpdate={setInUserList}
+        />
+      )}
     </div>
   );
 }
