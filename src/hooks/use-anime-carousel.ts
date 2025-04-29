@@ -19,6 +19,7 @@ export function useAnimeCarousel({
   const carouselApiRef = useRef<CarouselApi | null>(null);
   const previousItemsCountRef = useRef(itemsCount);
   const scrollPositionRef = useRef(0);
+  const scrollSnapshotRef = useRef<number | null>(null);
   const isInitialRenderRef = useRef(true);
 
   // Reset end reached flag when loading more data
@@ -30,7 +31,13 @@ export function useAnimeCarousel({
     if (!api) return;
     
     // Save current scroll position
-    scrollPositionRef.current = api.scrollSnapList()[api.selectedScrollSnap()];
+    const currentSnapIndex = api.selectedScrollSnap();
+    scrollPositionRef.current = api.scrollSnapList()[currentSnapIndex];
+    
+    // Take snapshot of current position before loading more
+    if (scrollSnapshotRef.current === null && hasMore && api.scrollProgress() > 0.8) {
+      scrollSnapshotRef.current = currentSnapIndex;
+    }
     
     // Check if we're close to the end of the carousel (last 20% of the scroll)
     const scrollProgress = api.scrollProgress();
@@ -54,12 +61,14 @@ export function useAnimeCarousel({
       // Wait for DOM to update
       setTimeout(() => {
         const api = carouselApiRef.current;
-        // Try to maintain the same visual position
-        if (api && api.scrollTo) {
-          api.scrollTo(scrollPositionRef.current, false);
+        // If we have a snapshot of where we were, use that
+        if (api && api.scrollTo && scrollSnapshotRef.current !== null) {
+          api.scrollTo(scrollSnapshotRef.current, false);
+          // Reset the snapshot
+          scrollSnapshotRef.current = null;
         }
         previousItemsCountRef.current = itemsCount;
-      }, 100);
+      }, 150); // Increased timeout for more reliable DOM update
     }
   }, [itemsCount]);
 

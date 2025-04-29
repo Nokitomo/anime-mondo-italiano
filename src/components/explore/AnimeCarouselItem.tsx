@@ -1,4 +1,5 @@
 
+import React from "react";
 import { AnimeMedia } from "@/types/anime";
 import { AnimeCard, AnimeCardSkeleton } from "@/components/AnimeCard";
 import { CarouselItem } from "@/components/ui/carousel";
@@ -9,18 +10,19 @@ interface AnimeCarouselItemProps {
   index: number;
 }
 
-export function AnimeCarouselItem({ anime, sectionTitle, index }: AnimeCarouselItemProps) {
-  return (
-    <CarouselItem 
-      key={`${sectionTitle.toLowerCase().replace(/\s+/g, '-')}-${anime.id}-${index}`} 
-      className="basis-1/3 md:basis-1/3 lg:basis-1/3"
-    >
-      <div className="p-1">
-        <AnimeCard anime={anime} />
-      </div>
-    </CarouselItem>
-  );
-}
+export const AnimeCarouselItem = React.memo(
+  function AnimeCarouselItem({ anime, sectionTitle, index }: AnimeCarouselItemProps) {
+    return (
+      <CarouselItem 
+        className="basis-1/3 md:basis-1/3 lg:basis-1/3"
+      >
+        <div className="p-1">
+          <AnimeCard anime={anime} />
+        </div>
+      </CarouselItem>
+    );
+  }
+);
 
 export function AnimeCarouselLoadingItem() {
   return (

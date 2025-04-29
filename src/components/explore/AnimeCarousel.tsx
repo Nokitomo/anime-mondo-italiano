@@ -68,16 +68,20 @@ export const AnimeCarousel = ({
         }}
         setApi={(api) => {
           carouselApiRef.current = api;
+          
+          // Set up scroll event listener
           api?.on("scroll", () => {
             handleCarouselScroll(api);
           });
           
-          // When carousel API is ready and it's not the first render
+          // Handle position restoration for non-initial renders
           if (!isInitialRenderRef.current && scrollPositionRef.current > 0) {
-            // Wait for DOM to be ready
+            // Use an increased timeout to ensure DOM is ready
             setTimeout(() => {
-              api?.scrollTo(scrollPositionRef.current, false);
-            }, 100);
+              if (api?.scrollTo) {
+                api.scrollTo(scrollPositionRef.current, false);
+              }
+            }, 150);
           }
         }}
       >
