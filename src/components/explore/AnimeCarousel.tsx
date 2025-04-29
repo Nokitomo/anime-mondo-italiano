@@ -1,5 +1,5 @@
 
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { AnimeMedia } from "@/types/anime";
 import { AnimeCard, AnimeCardSkeleton } from "@/components/AnimeCard";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -32,9 +32,14 @@ export const AnimeCarousel = ({
   const endReachedRef = useRef(false);
   const carouselApiRef = useRef<any>(null);
   const previousItemsCountRef = useRef(animeList.length);
+  const scrollPositionRef = useRef(0);
+  const isInitialRenderRef = useRef(true);
 
   const handleCarouselScroll = (api: any) => {
     if (!api) return;
+    
+    // Salva la posizione di scorrimento corrente
+    scrollPositionRef.current = api.scrollSnapList()[api.selectedScrollSnap()];
     
     // Check if we're close to the end of the carousel (last 20% of the scroll)
     const scrollProgress = api.scrollProgress();
@@ -50,13 +55,27 @@ export const AnimeCarousel = ({
     endReachedRef.current = false;
   }
 
-  // Preserve scroll position when new items are loaded
-  if (carouselApiRef.current && animeList.length > previousItemsCountRef.current) {
-    // Only update ref after the component has rendered the new items
-    setTimeout(() => {
-      previousItemsCountRef.current = animeList.length;
-    }, 0);
-  }
+  // Effetto per ripristinare la posizione di scorrimento quando vengono aggiunti nuovi elementi
+  useEffect(() => {
+    // Salta il ripristino della posizione al primo render
+    if (isInitialRenderRef.current) {
+      isInitialRenderRef.current = false;
+      return;
+    }
+    
+    // Ripristina la posizione solo se sono stati aggiunti nuovi elementi
+    if (carouselApiRef.current && animeList.length > previousItemsCountRef.current) {
+      // Aspetta che il DOM si aggiorni
+      setTimeout(() => {
+        const api = carouselApiRef.current;
+        // Cerca di mantenere la stessa posizione visiva
+        if (api && api.scrollTo) {
+          api.scrollTo(scrollPositionRef.current, false);
+        }
+        previousItemsCountRef.current = animeList.length;
+      }, 100);
+    }
+  }, [animeList.length]);
 
   return (
     <section>
@@ -80,6 +99,14 @@ export const AnimeCarousel = ({
             api?.on("scroll", () => {
               handleCarouselScroll(api);
             });
+            
+            // Quando l'API del carosello è pronta e non è il primo render
+            if (!isInitialRenderRef.current && scrollPositionRef.current > 0) {
+              // Attendiamo che il DOM sia pronto
+              setTimeout(() => {
+                api?.scrollTo(scrollPositionRef.current, false);
+              }, 100);
+            }
           }}
         >
           <CarouselContent>

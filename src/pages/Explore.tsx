@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getTrendingAnime, searchAnime } from "@/services/anilist";
 import { Button } from "@/components/ui/button";
@@ -65,11 +65,23 @@ const Explore = () => {
   useEffect(() => {
     if (!data) return;
     
-    setAllItems(prev => ({
-      trending: page.trending === 1 ? data.trending.media : [...prev.trending, ...data.trending.media],
-      popular: page.popular === 1 ? data.popular.media : [...prev.popular, ...data.popular.media],
-      upcoming: page.upcoming === 1 ? data.upcoming.media : [...prev.upcoming, ...data.upcoming.media]
-    }));
+    setAllItems(prev => {
+      // Utilizza un Set per tenere traccia degli ID già presenti
+      const existingTrendingIds = new Set(prev.trending.map(anime => anime.id));
+      const existingPopularIds = new Set(prev.popular.map(anime => anime.id));
+      const existingUpcomingIds = new Set(prev.upcoming.map(anime => anime.id));
+      
+      // Filtra i nuovi dati per rimuovere quelli già presenti
+      const newTrending = data.trending.media.filter(anime => !existingTrendingIds.has(anime.id));
+      const newPopular = data.popular.media.filter(anime => !existingPopularIds.has(anime.id));
+      const newUpcoming = data.upcoming.media.filter(anime => !existingUpcomingIds.has(anime.id));
+      
+      return {
+        trending: page.trending === 1 ? data.trending.media : [...prev.trending, ...newTrending],
+        popular: page.popular === 1 ? data.popular.media : [...prev.popular, ...newPopular],
+        upcoming: page.upcoming === 1 ? data.upcoming.media : [...prev.upcoming, ...newUpcoming]
+      };
+    });
 
     // Update hasMore state based on pagination info
     setHasMore({
@@ -79,14 +91,16 @@ const Explore = () => {
     });
   }, [data, page]);
 
-  const loadMoreAnime = (section: "trending" | "popular" | "upcoming") => {
+  const loadMoreAnime = useCallback((section: "trending" | "popular" | "upcoming") => {
     if (isFetching || !hasMore[section]) return;
+    
+    console.log(`Caricamento di più anime per la sezione: ${section}`);
     
     setPage(prev => ({
       ...prev,
       [section]: prev[section] + 1
     }));
-  };
+  }, [isFetching, hasMore]);
   
   // Esegue la ricerca direttamente in questa pagina invece di reindirizzare
   const handleSearch = async () => {
