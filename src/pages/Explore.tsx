@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { AnimeCard, AnimeCardSkeleton } from "@/components/AnimeCard";
 import { useQuery } from "@tanstack/react-query";
@@ -5,15 +6,44 @@ import { getTrendingAnime } from "@/services/anilist";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import type { AnimeMedia } from "@/types/anime";
+
+const ITEMS_PER_PAGE = 24; // Impostiamo un numero più alto di elementi per pagina
 
 const Explore = () => {
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState({
+    trending: 1,
+    popular: 1, 
+    upcoming: 1
+  });
+  const [hasMore, setHasMore] = useState({
+    trending: true,
+    popular: true,
+    upcoming: true
+  });
+  const [activeTab, setActiveTab] = useState<"trending" | "popular" | "upcoming">("trending");
+  const [allItems, setAllItems] = useState<{
+    trending: AnimeMedia[],
+    popular: AnimeMedia[],
+    upcoming: AnimeMedia[]
+  }>({
+    trending: [],
+    popular: [],
+    upcoming: []
+  });
+  
   const { toast } = useToast();
   
   const { data, isLoading, error, isFetching } = useQuery({
     queryKey: ["trendingAnime", page],
-    queryFn: () => getTrendingAnime(),
+    queryFn: () => getTrendingAnime({
+      trendingPage: page.trending,
+      trendingPerPage: ITEMS_PER_PAGE,
+      popularPage: page.popular,
+      popularPerPage: ITEMS_PER_PAGE,
+      upcomingPage: page.upcoming,
+      upcomingPerPage: ITEMS_PER_PAGE
+    }),
     staleTime: 5 * 60 * 1000,
     retry: 2,
     meta: {
@@ -28,17 +58,35 @@ const Explore = () => {
     }
   });
 
-  // Effetto per gestire hasMore quando i dati cambiano
+  // Effetto per aggiungere i nuovi dati agli array esistenti
   useEffect(() => {
-    if (data?.trending?.media) {
-      setHasMore(data.trending.media.length >= 24);
-    }
-  }, [data]);
+    if (!data) return;
+    
+    setAllItems(prev => ({
+      trending: page.trending === 1 ? data.trending.media : [...prev.trending, ...data.trending.media],
+      popular: page.popular === 1 ? data.popular.media : [...prev.popular, ...data.popular.media],
+      upcoming: page.upcoming === 1 ? data.upcoming.media : [...prev.upcoming, ...data.upcoming.media]
+    }));
+
+    // Aggiorna lo stato di hasMore in base alle informazioni sulla paginazione
+    setHasMore({
+      trending: data.trending.pageInfo?.hasNextPage ?? false,
+      popular: data.popular.pageInfo?.hasNextPage ?? false,
+      upcoming: data.upcoming.pageInfo?.hasNextPage ?? false
+    });
+  }, [data, page]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as "trending" | "popular" | "upcoming");
+  };
 
   const loadMore = () => {
-    if (!isFetching && hasMore) {
-      setPage(prev => prev + 1);
-    }
+    if (isFetching) return;
+    
+    setPage(prev => ({
+      ...prev,
+      [activeTab]: prev[activeTab] + 1
+    }));
   };
 
   if (isLoading) {
@@ -59,21 +107,16 @@ const Explore = () => {
       <div className="container py-8 text-center">
         <h1 className="text-3xl font-bold mb-6">Esplora</h1>
         <p className="text-red-600 mb-4">Si è verificato un errore nel caricamento degli anime.</p>
-        <Button variant="outline" onClick={() => setPage(1)}>Riprova</Button>
+        <Button variant="outline" onClick={() => setPage({trending: 1, popular: 1, upcoming: 1})}>Riprova</Button>
       </div>
     );
   }
-
-  // Sicurezza per evitare riferimenti a dati undefined
-  const trending = data?.trending?.media || [];
-  const popular = data?.popular?.media || [];
-  const upcoming = data?.upcoming?.media || [];
 
   return (
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-6">Esplora</h1>
       
-      <Tabs defaultValue="trending" className="w-full">
+      <Tabs defaultValue="trending" className="w-full" onValueChange={handleTabChange}>
         <TabsList className="mb-6">
           <TabsTrigger value="trending">In tendenza</TabsTrigger>
           <TabsTrigger value="popular">Popolari</TabsTrigger>
@@ -82,12 +125,12 @@ const Explore = () => {
         
         <TabsContent value="trending">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {trending.map((anime) => (
-              <AnimeCard key={`trending-${anime.id}`} anime={anime} />
+            {allItems.trending.map((anime, index) => (
+              <AnimeCard key={`trending-${anime.id}-${index}`} anime={anime} />
             ))}
           </div>
           
-          {hasMore && (
+          {hasMore.trending && (
             <div className="flex justify-center mt-8">
               <Button 
                 onClick={loadMore}
@@ -103,18 +146,44 @@ const Explore = () => {
         
         <TabsContent value="popular">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {popular.map((anime) => (
-              <AnimeCard key={`popular-${anime.id}`} anime={anime} />
+            {allItems.popular.map((anime, index) => (
+              <AnimeCard key={`popular-${anime.id}-${index}`} anime={anime} />
             ))}
           </div>
+          
+          {hasMore.popular && (
+            <div className="flex justify-center mt-8">
+              <Button 
+                onClick={loadMore}
+                disabled={isFetching}
+                variant="outline"
+                className="min-w-[200px]"
+              >
+                {isFetching ? "Caricamento..." : "Carica altri anime"}
+              </Button>
+            </div>
+          )}
         </TabsContent>
         
         <TabsContent value="upcoming">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {upcoming.map((anime) => (
-              <AnimeCard key={`upcoming-${anime.id}`} anime={anime} />
+            {allItems.upcoming.map((anime, index) => (
+              <AnimeCard key={`upcoming-${anime.id}-${index}`} anime={anime} />
             ))}
           </div>
+          
+          {hasMore.upcoming && (
+            <div className="flex justify-center mt-8">
+              <Button 
+                onClick={loadMore}
+                disabled={isFetching}
+                variant="outline"
+                className="min-w-[200px]"
+              >
+                {isFetching ? "Caricamento..." : "Carica altri anime"}
+              </Button>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

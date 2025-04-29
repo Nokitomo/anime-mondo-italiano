@@ -1,4 +1,3 @@
-
 export const ANILIST_API_URL = "https://graphql.anilist.co";
 
 export const ANIME_SEARCH_QUERY = `
@@ -62,8 +61,15 @@ export const ANIME_SEARCH_QUERY = `
 `;
 
 export const ANIME_TRENDING_QUERY = `
-  query {
-    trending: Page(page: 1, perPage: 6) {
+  query ($trendingPage: Int, $trendingPerPage: Int, $popularPage: Int, $popularPerPage: Int, $upcomingPage: Int, $upcomingPerPage: Int) {
+    trending: Page(page: $trendingPage, perPage: $trendingPerPage) {
+      pageInfo {
+        total
+        currentPage
+        lastPage
+        hasNextPage
+        perPage
+      }
       media(sort: TRENDING_DESC, type: ANIME) {
         id
         title {
@@ -98,7 +104,14 @@ export const ANIME_TRENDING_QUERY = `
         }
       }
     }
-    popular: Page(page: 1, perPage: 6) {
+    popular: Page(page: $popularPage, perPage: $popularPerPage) {
+      pageInfo {
+        total
+        currentPage
+        lastPage
+        hasNextPage
+        perPage
+      }
       media(sort: POPULARITY_DESC, type: ANIME) {
         id
         title {
@@ -112,9 +125,21 @@ export const ANIME_TRENDING_QUERY = `
           medium
         }
         type
+        nextAiringEpisode {
+          airingAt
+          timeUntilAiring
+          episode
+        }
       }
     }
-    upcoming: Page(page: 1, perPage: 6) {
+    upcoming: Page(page: $upcomingPage, perPage: $upcomingPerPage) {
+      pageInfo {
+        total
+        currentPage
+        lastPage
+        hasNextPage
+        perPage
+      }
       media(sort: POPULARITY_DESC, type: ANIME, status: NOT_YET_RELEASED) {
         id
         title {
@@ -128,6 +153,11 @@ export const ANIME_TRENDING_QUERY = `
           medium
         }
         type
+        nextAiringEpisode {
+          airingAt
+          timeUntilAiring
+          episode
+        }
       }
     }
   }

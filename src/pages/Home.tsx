@@ -19,7 +19,12 @@ const Home = () => {
     const fetchAnime = async () => {
       try {
         setLoading(true);
-        const data = await getTrendingAnime();
+        // Impostiamo un limite di 6 per mantenere lo stesso layout nella home
+        const data = await getTrendingAnime({
+          trendingPerPage: 6,
+          popularPerPage: 6,
+          upcomingPerPage: 6
+        });
         
         setTrendingAnime(data.trending.media);
         setPopularAnime(data.popular.media);
